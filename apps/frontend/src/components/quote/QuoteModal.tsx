@@ -286,14 +286,19 @@ export function QuoteModal({ open, onClose, productSlug }: Props) {
               <input id="q-empresa-site" name="empresa_site" tabIndex={-1} autoComplete="off" />
             </div>
 
+            {/* Os ids form-field-Nome / form-field-Email / form-field-phone
+                nao seguem o padrao do resto do formulario de proposito: o
+                rastreamento de midia le esses campos por seletor CSS, e os
+                nomes vem do formulario do site anterior (Elementor).
+                Renomear quebra a captura de lead das campanhas. */}
             <div className={s.grid}>
               <div className={s.field}>
-                <label className={s.label} htmlFor="q-nome">
+                <label className={s.label} htmlFor="form-field-Nome">
                   Nome <span className={s.required}>*</span>
                 </label>
                 <input
                   className={s.input}
-                  id="q-nome"
+                  id="form-field-Nome"
                   name="nome"
                   required
                   autoComplete="name"
@@ -316,12 +321,12 @@ export function QuoteModal({ open, onClose, productSlug }: Props) {
               </div>
 
               <div className={s.field}>
-                <label className={s.label} htmlFor="q-email">
+                <label className={s.label} htmlFor="form-field-Email">
                   E-mail <span className={s.required}>*</span>
                 </label>
                 <input
                   className={s.input}
-                  id="q-email"
+                  id="form-field-Email"
                   name="email"
                   type="email"
                   required
@@ -331,12 +336,12 @@ export function QuoteModal({ open, onClose, productSlug }: Props) {
               </div>
 
               <div className={s.field}>
-                <label className={s.label} htmlFor="q-telefone">
+                <label className={s.label} htmlFor="form-field-phone">
                   DDD + Telefone
                 </label>
                 <input
                   className={s.input}
-                  id="q-telefone"
+                  id="form-field-phone"
                   name="telefone"
                   type="tel"
                   autoComplete="tel"

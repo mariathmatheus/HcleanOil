@@ -28,7 +28,21 @@ export const contactSchema = z
     _ga: z.string().max(120).optional(),
     _gcl_aw: z.string().max(200).optional(),
     gclid: z.string().max(200).optional(),
+    gbraid: z.string().max(200).optional(),
+    wbraid: z.string().max(200).optional(),
+    fbclid: z.string().max(200).optional(),
+    msclkid: z.string().max(200).optional(),
     pagina_origem: z.string().max(300).optional(),
+
+    /* UTMs da campanha que trouxe o visitante. Guardadas na primeira visita
+       e enviadas no formulário, mesmo que ele tenha navegado antes. */
+    utm_source: z.string().max(200).optional(),
+    utm_medium: z.string().max(200).optional(),
+    utm_campaign: z.string().max(200).optional(),
+    utm_term: z.string().max(200).optional(),
+    utm_content: z.string().max(200).optional(),
+    utm_id: z.string().max(200).optional(),
+    utm_captured_at: z.string().max(40).optional(),
   })
   /* As quantidades vêm com nomes dinâmicos, montados a partir do produto
      escolhido ("Kit SOPEP 50 L — Quantidade", "Manta absorvente — Quantidade").
@@ -56,7 +70,18 @@ const KNOWN = new Set([
   '_ga',
   '_gcl_aw',
   'gclid',
+  'gbraid',
+  'wbraid',
+  'fbclid',
+  'msclkid',
   'pagina_origem',
+  'utm_source',
+  'utm_medium',
+  'utm_campaign',
+  'utm_term',
+  'utm_content',
+  'utm_id',
+  'utm_captured_at',
 ]);
 
 /**

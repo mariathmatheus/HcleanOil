@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
-import { enviarEvento } from '@/lib/analytics';
+import { enviarEvento, guardarUtms } from '@/lib/analytics';
 
 /**
  * Registra a troca de página na navegação sem recarga.
@@ -25,6 +25,11 @@ export function PageViews() {
   const primeira = useRef(true);
 
   useEffect(() => {
+    /* Antes de qualquer coisa: a UTM da campanha chega na URL do primeiro
+       acesso e some na navegação seguinte. Guardar aqui garante que ela
+       ainda exista quando a pessoa preencher o formulário. */
+    guardarUtms();
+
     if (primeira.current) {
       primeira.current = false;
       return;

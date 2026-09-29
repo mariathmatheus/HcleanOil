@@ -129,8 +129,13 @@ contatoRouter.post('/contato', limiter, async (req, res) => {
        espera só as duas últimas partes. Sem isso cada lead server-side vira
        sessão nova e a conversão perde a campanha que a originou. */
     clientId: clientIdDoGa(data._ga),
-    gclid: data.gclid || data._gcl_aw || undefined,
+    gclid: data.gclid || data.gbraid || data.wbraid || data._gcl_aw || undefined,
     paginaOrigem: data.pagina_origem || undefined,
+    utms: Object.fromEntries(
+      Object.entries(data).filter(
+        ([k, v]) => k.startsWith('utm_') && typeof v === 'string' && v,
+      ) as [string, string][],
+    ),
     userAgent: req.get('user-agent'),
     ip: req.ip,
   }).catch(() => {});

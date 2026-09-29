@@ -139,6 +139,77 @@ export function enviarLead(dados: {
  * (bloqueador), e é no tráfego pago que isso mais acontece — sem estes
  * campos, o lead que chega pelo servidor parece tráfego direto.
  */
+/** Parâmetros de campanha que o Google Ads e o Meta usam. */
+const UTMS = [
+  'utm_source',
+  'utm_medium',
+  'utm_campaign',
+  'utm_term',
+  'utm_content',
+  'utm_id',
+] as const;
+
+/* Identificadores do clique no anúncio. O gclid é o que o Google Ads usa
+   para casar a conversão com o anúncio exato; sem ele a conversão existe mas
+   não se liga a nenhuma campanha. Some da URL na primeira navegação, igual
+   às UTMs. */
+const CLIQUES = ['gclid', 'gbraid', 'wbraid', 'fbclid', 'msclkid'] as const;
+
+const CHAVE_UTM = 'hclean-utms';
+
+/**
+ * Guarda as UTMs da primeira visita.
+ *
+ * Elas chegam na URL do clique no anúncio e somem na primeira navegação
+ * interna — mas a conversão quase sempre acontece algumas páginas depois.
+ * Sem persistir, o lead que veio de campanha paga é contado como tráfego
+ * direto, e o relatório do anúncio fica vazio.
+ *
+ * Só grava quando há alguma UTM na URL: uma visita direta não pode apagar a
+ * atribuição de uma campanha que trouxe a pessoa antes.
+ */
+export function guardarUtms(): void {
+  if (typeof window === 'undefined') return;
+
+  const busca = new URLSearchParams(window.location.search);
+  const daUrl: Record<string, string> = {};
+  for (const chave of [...UTMS, ...CLIQUES]) {
+    const valor = busca.get(chave);
+    if (valor) daUrl[chave] = valor.slice(0, 200);
+  }
+  /* Vale como origem quando não há utm_source: é assim que o tráfego
+     orgânico e o de indicação se distinguem do direto. */
+  if (!Object.keys(daUrl).length) return;
+
+  try {
+    sessionStorage.setItem(
+      CHAVE_UTM,
+      JSON.stringify({ ...daUrl, utm_captured_at: new Date().toISOString() }),
+    );
+  } catch {
+    /* Navegador com armazenamento bloqueado: a UTM ainda viaja se a
+       conversão acontecer na mesma página. */
+  }
+}
+
+/** Lê as UTMs guardadas, com o que estiver na URL tendo prioridade. */
+function lerUtms(): Record<string, string> {
+  const resultado: Record<string, string> = {};
+  try {
+    const salvo = sessionStorage.getItem(CHAVE_UTM);
+    if (salvo) Object.assign(resultado, JSON.parse(salvo));
+  } catch {
+    /* sem armazenamento: segue com o que a URL tiver */
+  }
+
+  const busca = new URLSearchParams(window.location.search);
+  for (const chave of [...UTMS, ...CLIQUES]) {
+    const valor = busca.get(chave);
+    if (valor) resultado[chave] = valor.slice(0, 200);
+  }
+  return resultado;
+}
+
 export function identificadoresDeCampanha(): Record<string, string> {
   if (typeof document === 'undefined') return {};
 
@@ -154,13 +225,12 @@ export function identificadoresDeCampanha(): Record<string, string> {
   const gclAw = cookie('_gcl_aw');
   if (gclAw) dados._gcl_aw = gclAw;
 
-  /* O gclid chega na URL no primeiro clique do anúncio e some na navegação
-     seguinte; o cookie _gcl_aw é quem o preserva. Ler os dois cobre tanto a
-     conversão na primeira página quanto a que acontece depois. */
-  const daUrl = new URLSearchParams(window.location.search).get('gclid');
-  if (daUrl) dados.gclid = daUrl;
-
   dados.pagina_origem = window.location.href.slice(0, 300);
+
+  /* As UTMs da campanha que trouxe a pessoa, mesmo que ela tenha navegado
+     por várias páginas antes de preencher. */
+  Object.assign(dados, lerUtms());
+
   return dados;
 }
 

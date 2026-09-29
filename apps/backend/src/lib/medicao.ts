@@ -27,6 +27,8 @@ type DadosLead = {
   /** Identificador do clique no anúncio, para casar a conversão com a campanha. */
   gclid?: string;
   paginaOrigem?: string;
+  /** UTMs da campanha, como chegaram do formulário. */
+  utms?: Record<string, string>;
   userAgent?: string;
   ip?: string;
 };
@@ -45,6 +47,7 @@ export async function registrarLead(dados: DadosLead): Promise<void> {
     client_id: dados.clientId,
     gclid: dados.gclid,
     page_location: dados.paginaOrigem,
+    ...(dados.utms ?? {}),
     currency: 'BRL',
     value: dados.valor,
     estado_entrega: dados.estado,
