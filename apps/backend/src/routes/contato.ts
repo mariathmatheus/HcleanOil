@@ -6,6 +6,7 @@ import { env } from '../lib/env.js';
 import { leadNotification, leadConfirmation } from '../emails/templates.js';
 import { propostaParaCliente, propostaParaEquipe } from '../emails/proposta.js';
 import { gerarProposta } from '../proposta/gerar.js';
+import { montarOrcamento } from '../proposta/orcamento.js';
 import { agendarProposta } from '../proposta/agenda.js';
 import { registrarLead } from '../lib/medicao.js';
 import { randomUUID } from 'node:crypto';
@@ -24,6 +25,18 @@ const limiter = rateLimit({
     error: 'Muitas solicitações. Tente novamente em alguns minutos.',
   },
 });
+
+/**
+ * Extrai o client id do cookie _ga.
+ *
+ * O cookie tem o formato "GA1.1.1234567890.1699999999"; o identificador que
+ * o GA4 usa são os dois últimos campos juntos.
+ */
+function clientIdDoGa(cookie?: string): string | undefined {
+  if (!cookie) return undefined;
+  const partes = cookie.split('.');
+  return partes.length >= 4 ? `${partes[2]}.${partes[3]}` : cookie;
+}
 
 const formatDate = (d: Date) =>
   new Intl.DateTimeFormat('pt-BR', {
@@ -57,6 +70,20 @@ contatoRouter.post('/contato', limiter, async (req, res) => {
      container de medição deduplicar os dois caminhos. */
   const leadId = randomUUID();
 
+  /* Valor estimado do pedido, pela mesma tabela que monta a proposta.
+     Sem `value` o Google Ads nao consegue otimizar por valor de conversao:
+     "maximizar valor" e tROAS ficam cegos e todo lead pesa igual, o de uma
+     manta e o de um kit de mil litros.
+
+     Pedido que exige cotacao entra com o que ja tem preco de tabela; quando
+     nem isso existe, vai um valor de referencia em vez de zero — zero
+     desligaria o lance por valor para esse lead. */
+  const orcamento = montarOrcamento(itens, {
+    produto: data.produto || undefined,
+    estado: data.estado || undefined,
+  });
+  const valorLead = orcamento.total > 0 ? orcamento.total : env.VALOR_LEAD_SEM_PRECO;
+
   const notification = leadNotification({
     ...data,
     items: itens,
@@ -84,21 +111,26 @@ contatoRouter.post('/contato', limiter, async (req, res) => {
 
   /* A partir daqui nada bloqueia a resposta: o lead já está registrado, e o
      cliente não deve esperar a geração do PDF para ver "enviado" na tela. */
-  res.json({ ok: true, leadId });
+  res.json({ ok: true, leadId, valor: valorLead });
 
   /* Medição server-side, depois da resposta: o evento do navegador pode não
      chegar por causa de bloqueador, e este não depende do cliente. Falha aqui
      não afeta o lead, que já está na caixa comercial. */
   registrarLead({
     leadId,
+    valor: valorLead,
     nome: data.nome,
     email: data.email,
     telefone: data.telefone || undefined,
     estado: data.estado || undefined,
     produtos: data.produto || undefined,
     itens,
-    // `_ga` traz o client id do GA4; sem ele o container trata como sessão nova.
-    clientId: typeof req.body?._ga === 'string' ? req.body._ga : undefined,
+    /* O cookie _ga vem como "GA1.1.<clientId>.<timestamp>"; o container
+       espera só as duas últimas partes. Sem isso cada lead server-side vira
+       sessão nova e a conversão perde a campanha que a originou. */
+    clientId: clientIdDoGa(data._ga),
+    gclid: data.gclid || data._gcl_aw || undefined,
+    paginaOrigem: data.pagina_origem || undefined,
     userAgent: req.get('user-agent'),
     ip: req.ip,
   }).catch(() => {});

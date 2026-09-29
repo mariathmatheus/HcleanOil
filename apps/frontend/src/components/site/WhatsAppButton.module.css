@@ -1,0 +1,56 @@
+/* Atalho flutuante para o WhatsApp. */
+
+.botao {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  /* Abaixo do pop-up de orçamento e da faixa de consentimento, acima do
+     conteúdo: o botão não pode cobrir uma decisão que o visitante está
+     tomando. */
+  z-index: 40;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+
+  border-radius: 999px;
+  /* Verde do WhatsApp, não o da marca: o reconhecimento do canal vale mais
+     que a consistência cromática aqui. */
+  background: #25d366;
+  color: #fff;
+  box-shadow: 0 6px 20px rgb(6 26 17 / 28%);
+
+  transition: transform 140ms ease, box-shadow 140ms ease;
+}
+
+.botao:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 26px rgb(6 26 17 / 34%);
+}
+
+.botao:focus-visible {
+  outline: 3px solid var(--hc-green-300);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .botao {
+    transition: none;
+  }
+  .botao:hover {
+    transform: none;
+  }
+}
+
+/* No telefone a faixa de consentimento ocupa a base da tela enquanto não é
+   respondida; o botão sobe um pouco para não ficar embaixo dela. */
+@media (max-width: 720px) {
+  .botao {
+    right: 16px;
+    bottom: 16px;
+    width: 52px;
+    height: 52px;
+  }
+}

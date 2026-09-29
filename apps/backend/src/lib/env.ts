@@ -111,6 +111,16 @@ const schema = z.object({
     .optional()
     .transform((v) => (v?.trim() ? v.trim().replace(/\/$/, '') : undefined)),
 
+  /**
+   * Valor atribuído a um lead cujo pedido não tem preço de tabela.
+   *
+   * O Google Ads precisa de um número para otimizar por valor de conversão.
+   * Zero desligaria o lance por valor justamente para o tanque e os pedidos
+   * grandes sob cotação, que são os de maior ticket. Um valor de referência
+   * conservador mantém esses leads no jogo sem inflar o retorno declarado.
+   */
+  VALOR_LEAD_SEM_PRECO: z.coerce.number().min(0).default(1500),
+
   /** Chave opcional exigida pelo container server-side, se houver. */
   SGTM_API_KEY: z
     .string()

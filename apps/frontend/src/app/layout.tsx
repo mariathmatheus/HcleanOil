@@ -5,6 +5,8 @@ import { Footer } from '@/components/site/Footer';
 import { QuoteProvider } from '@/components/quote/QuoteProvider';
 import { Gtm, GtmNoScript } from '@/components/analytics/Gtm';
 import { Consent } from '@/components/analytics/Consent';
+import { PageViews } from '@/components/analytics/PageViews';
+import { WhatsAppButton } from '@/components/site/WhatsAppButton';
 import { site } from '@/data/site';
 import '@/styles/globals.css';
 
@@ -113,6 +115,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <main id="conteudo">{children}</main>
           <Footer />
         </QuoteProvider>
+        <WhatsAppButton />
+        <PageViews />
         <Consent />
         <script
           type="application/ld+json"

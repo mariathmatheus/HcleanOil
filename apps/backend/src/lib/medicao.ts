@@ -14,6 +14,8 @@ import type { QuoteItem } from './schema.js';
 
 type DadosLead = {
   leadId: string;
+  /** Valor estimado do pedido, para o lance por valor no Google Ads. */
+  valor: number;
   nome: string;
   email: string;
   telefone?: string;
@@ -22,6 +24,9 @@ type DadosLead = {
   itens: QuoteItem[];
   /** Vêm da requisição, para o container atribuir a sessão certa. */
   clientId?: string;
+  /** Identificador do clique no anúncio, para casar a conversão com a campanha. */
+  gclid?: string;
+  paginaOrigem?: string;
   userAgent?: string;
   ip?: string;
 };
@@ -38,7 +43,10 @@ export async function registrarLead(dados: DadosLead): Promise<void> {
        mesmo lead vira duas conversões no relatório. */
     lead_id: dados.leadId,
     client_id: dados.clientId,
+    gclid: dados.gclid,
+    page_location: dados.paginaOrigem,
     currency: 'BRL',
+    value: dados.valor,
     estado_entrega: dados.estado,
     produtos_pedidos: dados.produtos,
     items: dados.itens.map((i) => ({ item_name: i.label, quantity: i.value })),

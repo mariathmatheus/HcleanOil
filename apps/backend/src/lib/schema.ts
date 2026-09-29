@@ -22,6 +22,13 @@ export const contactSchema = z
        a rota, que responde 200 e descarta em silêncio. Rejeitar aqui devolveria
        um 400 e ensinaria ao robô exatamente qual campo o denunciou. */
     empresa_site: z.string().max(200).optional(),
+
+    /* Identificadores de campanha, usados só na medição server-side. Limite
+       curto de propósito: são identificadores, não texto livre. */
+    _ga: z.string().max(120).optional(),
+    _gcl_aw: z.string().max(200).optional(),
+    gclid: z.string().max(200).optional(),
+    pagina_origem: z.string().max(300).optional(),
   })
   /* As quantidades vêm com nomes dinâmicos, montados a partir do produto
      escolhido ("Kit SOPEP 50 L — Quantidade", "Manta absorvente — Quantidade").
@@ -43,6 +50,13 @@ const KNOWN = new Set([
   'mensagem',
   'consentimento',
   'empresa_site',
+  /* Campos de medição. Precisam estar aqui: `extractItems` trata como item
+     do pedido tudo que não conhece, e sem isso o identificador do GA4
+     apareceria como uma linha de quantidade no e-mail e na proposta. */
+  '_ga',
+  '_gcl_aw',
+  'gclid',
+  'pagina_origem',
 ]);
 
 /**

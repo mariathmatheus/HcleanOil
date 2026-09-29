@@ -7,6 +7,7 @@ import { LogoMark } from '@/components/ui/Logo';
 import { products } from '@/data/site';
 import { findQuoteProduct, type QuantityField } from '@/data/quote';
 import {
+  identificadoresDeCampanha,
   abrirOrcamento,
   adicionarAoPedido,
   removerDoPedido,
@@ -183,6 +184,10 @@ export function QuoteModal({ open, onClose, productSlug }: Props) {
        do seu produto no próprio rótulo. */
     data.produto = cart.map((c) => c.name).join(', ');
 
+    /* Identificadores de campanha junto com o pedido: é o que permite à API
+       atribuir a conversão server-side ao anúncio que a gerou. */
+    Object.assign(data, identificadoresDeCampanha());
+
     setStatus('sending');
     setMessage('');
 
@@ -196,6 +201,9 @@ export function QuoteModal({ open, onClose, productSlug }: Props) {
         ok?: boolean;
         error?: string;
         leadId?: string;
+        /* Valor estimado do pedido, calculado pela tabela de preços no
+           servidor. O navegador não conhece os preços. */
+        valor?: number;
       };
       if (!res.ok || !body.ok) {
         throw new Error(body.error || 'Não foi possível enviar sua solicitação.');
@@ -204,6 +212,7 @@ export function QuoteModal({ open, onClose, productSlug }: Props) {
          para o GTM server-side deduplicar em vez de contar duas vezes. */
       enviarLead({
         leadId: body.leadId,
+        valor: body.valor,
         estado: typeof data.estado === 'string' ? data.estado : undefined,
         produtos: cart.map((c) => c.name).join(', '),
         itens: cart.map((c) => ({ item_id: c.slug, item_name: c.name, quantity: 1 })),

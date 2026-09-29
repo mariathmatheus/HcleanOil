@@ -109,6 +109,8 @@ export function removerDoPedido(item: AnalyticsItem): void {
  */
 export function enviarLead(dados: {
   leadId?: string;
+  /** Valor estimado do pedido, vindo do servidor. */
+  valor?: number;
   itens: AnalyticsItem[];
   estado?: string;
   produtos?: string;
@@ -118,8 +120,48 @@ export function enviarLead(dados: {
     lead_id: dados.leadId,
     estado_entrega: dados.estado,
     produtos_pedidos: dados.produtos,
-    ecommerce: { currency: 'BRL', items: dados.itens },
+    ecommerce: {
+      currency: 'BRL',
+      /* Sem `value` o Google Ads trata todo lead como igual e o lance por
+         valor fica cego. O número vem do servidor, que é quem tem a tabela
+         de preços. */
+      value: dados.valor,
+      items: dados.itens,
+    },
   });
+}
+
+/**
+ * Identificadores de campanha guardados no navegador.
+ *
+ * Vão junto com o formulário para a API poder atribuir a conversão
+ * server-side à campanha certa. O evento do navegador pode não chegar
+ * (bloqueador), e é no tráfego pago que isso mais acontece — sem estes
+ * campos, o lead que chega pelo servidor parece tráfego direto.
+ */
+export function identificadoresDeCampanha(): Record<string, string> {
+  if (typeof document === 'undefined') return {};
+
+  const cookie = (nome: string) =>
+    document.cookie
+      .split('; ')
+      .find((c) => c.startsWith(`${nome}=`))
+      ?.slice(nome.length + 1);
+
+  const dados: Record<string, string> = {};
+  const ga = cookie('_ga');
+  if (ga) dados._ga = ga;
+  const gclAw = cookie('_gcl_aw');
+  if (gclAw) dados._gcl_aw = gclAw;
+
+  /* O gclid chega na URL no primeiro clique do anúncio e some na navegação
+     seguinte; o cookie _gcl_aw é quem o preserva. Ler os dois cobre tanto a
+     conversão na primeira página quanto a que acontece depois. */
+  const daUrl = new URLSearchParams(window.location.search).get('gclid');
+  if (daUrl) dados.gclid = daUrl;
+
+  dados.pagina_origem = window.location.href.slice(0, 300);
+  return dados;
 }
 
 /** Erro no envio do formulário, para separar abandono de falha técnica. */
