@@ -25,6 +25,9 @@ ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
+# O diretorio so existe se alguma imagem foi otimizada no build; cria vazio
+# para o COPY do estagio final nunca falhar.
+RUN mkdir -p .next/cache/images
 
 # ------------------------------------------------------------- produção
 FROM node:22-alpine AS runner
@@ -44,6 +47,11 @@ USER node
 COPY --from=build --chown=node:node /app/.next/standalone ./
 COPY --from=build --chown=node:node /app/.next/static ./.next/static
 COPY --from=build --chown=node:node /app/public ./public
+
+# Cache do otimizador de imagem, aquecido durante o build.
+# Sem isto, a primeira visita depois de cada deploy paga o reencode de todas
+# as imagens — e era o que deixava o LCP da home em 4s.
+COPY --from=build --chown=node:node /app/.next/cache/images ./.next/cache/images
 
 EXPOSE 3000
 

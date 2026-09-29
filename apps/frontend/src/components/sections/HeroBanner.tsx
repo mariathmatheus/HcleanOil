@@ -42,7 +42,14 @@ export function Hero({
           alt={imageAlt}
           fill
           priority
-          sizes="100vw"
+          /* Esta imagem e o elemento LCP da home. `priority` ja gera o
+             preload; `fetchPriority` diz ao navegador para nao disputar banda
+             com o CSS e o JS no mesmo instante. */
+          fetchPriority="high"
+          /* Acima de 1600px a imagem ja cobre a tela: pedir 1920 so aumenta o
+             encode sem diferenca visivel. */
+          sizes="(max-width: 900px) 100vw, 1600px"
+          quality={72}
           style={{ objectFit: 'cover' }}
         />
       </div>
@@ -67,14 +74,21 @@ export function Hero({
             <dl className={s.stats}>
               {stats.map((st) => (
                 <div key={st.label} className={s.stat}>
-                  <span className={s.statIcon}>
-                    <Icon name={st.icon} size={30} strokeWidth={1.6} />
-                  </span>
                   {/* O rótulo é o termo e o número é a definição, mas
                       visualmente o número vem primeiro — daí a ordem invertida
-                      no CSS em vez de trocar a semântica. */}
+                      no CSS em vez de trocar a semântica.
+
+                      O ícone vive dentro do <dd>, não solto entre <dt> e <dd>:
+                      um <dl> (e os <div> de agrupamento dentro dele) só aceita
+                      dt, dd, script e template. Um <span> irmão quebra a regra
+                      e era o que segurava a home em 93 de acessibilidade. */}
                   <dt className={s.statLabel}>{st.label}</dt>
-                  <dd className={s.statValue}>{st.value}</dd>
+                  <dd className={s.statValue}>
+                    <span className={s.statIcon} aria-hidden="true">
+                      <Icon name={st.icon} size={30} strokeWidth={1.6} />
+                    </span>
+                    {st.value}
+                  </dd>
                 </div>
               ))}
             </dl>

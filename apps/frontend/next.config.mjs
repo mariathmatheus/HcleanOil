@@ -9,7 +9,22 @@ const nextConfig = {
   // LCP no tempo de resposta do CDN, que é o que o Core Web Vitals mede.
   compress: true,
   images: {
-    formats: ['image/avif', 'image/webp'],
+    /* Só WebP no caminho crítico.
+       AVIF comprime melhor, mas o encode e uma ordem de grandeza mais lento, e
+       o hero da home (a unica imagem `fill` a 100vw, origem 1920px) era a mais
+       cara de todas: o LCP media o tempo de encode, nao o de download. */
+    formats: ['image/webp'],
+
+    /* Um ano. O default sao 4 horas, e a cada expiracao a primeira visita
+       pagava o reencode de novo. A URL ja carrega o hash do arquivo, entao
+       trocar a imagem invalida o cache sozinho. */
+    minimumCacheTTL: 31536000,
+
+    /* Nenhuma imagem do projeto passa de 1920px. Sem esse corte o Next gera
+       variantes 2048 e 3840 por upscale — trabalho de CPU para um resultado
+       pior que o original. */
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+    imageSizes: [256, 384],
   },
   async redirects() {
     return [

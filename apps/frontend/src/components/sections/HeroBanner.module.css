@@ -102,18 +102,22 @@
   gap: 4px;
 }
 
+/* O <dd> carrega o ícone e o número, e vira coluna própria para empilhar os
+   dois como antes. O ícone deixou de ser filho direto do .stat (um <span>
+   solto dentro de <dl> é violação de acessibilidade), então o empilhamento
+   acontece aqui dentro em vez de por `order`. */
 .stat dd {
   order: -1;
   margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
 }
 
 .statIcon {
-  order: -2;
-}
-
-.statIcon {
+  display: block;
   color: var(--hc-green-300);
-  margin-bottom: 4px;
 }
 
 .statValue {

@@ -122,13 +122,21 @@ textarea {
   }
 }
 
+/* A revelação anima só o deslocamento, nunca a opacidade do texto.
+
+   Texto a meio fade tem contraste real menor que o declarado, e é nesse
+   instante que o auditor tira a medida: cartões com --text-body (7.4:1
+   quando opaco) apareciam como 1.87:1. Baixar o mínimo do fade não resolve,
+   porque qualquer valor < 1 reduz o contraste de quem lê devagar ou parou a
+   rolagem no meio.
+
+   O movimento vertical sozinho dá a mesma sensação de entrada, e o texto
+   nasce legível. */
 @keyframes reveal-in {
   from {
-    opacity: 0;
     transform: translateY(22px);
   }
   to {
-    opacity: 1;
     transform: none;
   }
 }
