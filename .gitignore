@@ -37,6 +37,9 @@ PRECOS.md
 TAREFAS.md
 ESTUDO-PROPOSTA-AUTOMATICA.md
 
+# Feed do Google Ads: artefato gerado por scripts/gerar-feed-ads.mjs
+feed-google-ads.csv
+
 # logs
 *.log
 npm-debug.log*
