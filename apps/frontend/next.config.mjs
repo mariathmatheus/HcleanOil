@@ -32,6 +32,16 @@ const nextConfig = {
          estava indexada e circula em assinaturas de e-mail. Redirect
          permanente para a home preserva esse tráfego. */
       { source: '/contato', destination: '/', permanent: true },
+
+      /* www para o domínio canônico. As duas formas servindo o mesmo conteúdo
+         dividiriam a autoridade entre dois endereços e o Google trataria como
+         duplicado. O 308 preserva o método e passa o sinal de permanente. */
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'www.hcleanoil.com.br' }],
+        destination: 'https://hcleanoil.com.br/:path*',
+        permanent: true,
+      },
     ];
   },
   async headers() {

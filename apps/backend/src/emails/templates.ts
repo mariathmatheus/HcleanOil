@@ -12,7 +12,7 @@ import type { ContactPayload, QuoteItem } from '../lib/schema.js';
 
 const { FONT, TEXT, MUTED, GREEN_800, GREEN_300 } = colors;
 
-const SITE = 'www.hcleanoil.com.br';
+const SITE = 'hcleanoil.com.br';
 const MAIL = 'contato@hcleanoil.com.br';
 const PHONE = '(21) 99494-5460';
 

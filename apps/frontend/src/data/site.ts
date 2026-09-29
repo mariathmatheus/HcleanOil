@@ -26,13 +26,17 @@ export const site = {
   /* Até 160 caracteres: o que passa disso o Google trunca com reticências. */
   description:
     'Há mais de 18 anos fabricando barreiras de contenção, absorventes, kits de emergência e tanques para resposta a emergências ambientais no Brasil.',
-  url: 'https://www.hcleanoil.com.br',
+  /* Canônico sem www. É esta URL que alimenta canonical, sitemap, Open Graph
+     e JSON-LD: as duas formas servindo o mesmo conteúdo sem um canônico
+     definido seriam conteúdo duplicado aos olhos do Google. O www redireciona
+     para cá. */
+  url: 'https://hcleanoil.com.br',
   contact: {
     email: 'contato@hcleanoil.com.br',
     phone: '(21) 99494-5460',
     phoneHref: 'tel:+5521994945460',
     whatsapp: 'https://wa.me/5521994945460',
-    site: 'www.hcleanoil.com.br',
+    site: 'hcleanoil.com.br',
     hours: 'Seg–Sex: 08:00–18:00 · Sáb–Dom: fechado',
   },
 } as const;

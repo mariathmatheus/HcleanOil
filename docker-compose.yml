@@ -21,7 +21,7 @@ services:
       args:
         # Entra no bundle em tempo de build: o navegador do visitante é quem
         # chama a API, então a URL precisa ser a pública, não "backend:4000".
-        NEXT_PUBLIC_API_URL: https://hclean.nerdresolve.com
+        NEXT_PUBLIC_API_URL: https://hcleanoil.com.br
     restart: unless-stopped
     expose:
       - '3000'
@@ -38,7 +38,10 @@ services:
       - ./apps/backend/.env
     environment:
       # Dentro do container o site é servido pelo túnel, não por localhost.
-      CORS_ORIGINS: https://hclean.nerdresolve.com
+      # As duas formas: o www redireciona, mas a requisição chega antes disso.
+      CORS_ORIGINS: https://hcleanoil.com.br,https://www.hcleanoil.com.br
+      # Container de medição server-side, já configurado na zona do cliente.
+      SGTM_URL: https://api.hcleanoil.com.br
       PROPOSTAS_DIR: /app/propostas
     volumes:
       # A numeração das propostas não pode reiniciar a cada deploy.

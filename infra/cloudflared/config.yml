@@ -11,11 +11,24 @@
 ingress:
   # API do formulário de contato. Precisa vir antes da regra do site: a
   # primeira que casar vence, e a do site casa com qualquer caminho.
-  - hostname: hclean.nerdresolve.com
+  - hostname: hcleanoil.com.br
+    path: ^/api/.*
+    service: http://backend:4000
+  - hostname: www.hcleanoil.com.br
     path: ^/api/.*
     service: http://backend:4000
 
-  # Site institucional.
+  # Site institucional. O www chega aqui e o Next redireciona para o
+  # domínio canônico, que é sem www.
+  - hostname: hcleanoil.com.br
+    service: http://frontend:3000
+  - hostname: www.hcleanoil.com.br
+    service: http://frontend:3000
+
+  # Domínio de staging, mantido enquanto a migração não conclui.
+  - hostname: hclean.nerdresolve.com
+    path: ^/api/.*
+    service: http://backend:4000
   - hostname: hclean.nerdresolve.com
     service: http://frontend:3000
 
