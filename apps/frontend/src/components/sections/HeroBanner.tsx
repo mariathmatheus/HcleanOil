@@ -48,8 +48,11 @@ export function Hero({
           fetchPriority="high"
           /* Acima de 1600px a imagem ja cobre a tela: pedir 1920 so aumenta o
              encode sem diferenca visivel. */
-          sizes="(max-width: 900px) 100vw, 1600px"
-          quality={72}
+          /* O telefone recebe a variante de 750px: com DPR alto o navegador
+             escolhia a de 1200px para um hero que pinta ~390px de largura e
+             ainda fica sob um scrim de 55-88% de opacidade. */
+          sizes="(max-width: 900px) 750px, 1600px"
+          quality={68}
           style={{ objectFit: 'cover' }}
         />
       </div>

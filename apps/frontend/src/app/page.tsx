@@ -99,7 +99,12 @@ export default function HomePage() {
                 alt="Barreira de contenção HCLEAN cercando uma área durante operação de resposta"
                 width={1024}
                 height={680}
-                sizes="(max-width: 900px) 100vw, 40vw"
+                /* Bem abaixo da dobra, mas entrava na rede no instante exato
+                   em que o hero precisa pintar, disputando banda com o LCP. */
+                loading="lazy"
+                /* Renderiza num painel lateral, nunca em largura total: pedir
+                   100vw no telefone trazia uma variante grande à toa. */
+                sizes="(max-width: 900px) 92vw, 40vw"
               />
               <span className={s.imageBadge}>
                 <Icon name="shield" size={16} />
