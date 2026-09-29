@@ -18,6 +18,7 @@ import {
   CTABanner,
 } from '@/components/sections/Shared';
 import { ProductCard } from '@/components/sections/ProductCard';
+import { ViewItem } from '@/components/analytics/ViewItem';
 import { Ornament, ornamentHost } from '@/components/sections/Ornament';
 import {
   findCategory,
@@ -80,6 +81,15 @@ export default async function ProdutoPage({ params }: Params) {
 
   return (
     <>
+      {/* Visualização de produto: alimenta os relatórios do GA4 e a audiência
+          de remarketing de quem olhou cada linha sem pedir orçamento. */}
+      <ViewItem
+        item={{
+          item_id: product.slug,
+          item_name: product.name,
+          item_category: category?.name,
+        }}
+      />
       <Hero>
         <Breadcrumbs
           trail={[

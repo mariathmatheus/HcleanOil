@@ -16,6 +16,7 @@ import {
   CTABanner,
 } from '@/components/sections/Shared';
 import { Ornament, ornamentHost } from '@/components/sections/Ornament';
+import { ViewItemList } from '@/components/analytics/ViewItem';
 import { formatos, findFormato } from '@/data/formatos';
 import { site } from '@/data/site';
 import s from './formato.module.css';
@@ -70,6 +71,17 @@ export default async function FormatoPage({ params }: Params) {
 
   return (
     <>
+      {/* Lista: o mesmo formato nas três linhas. Mostra no GA4 qual linha
+          costuma ganhar a comparação. */}
+      <ViewItemList
+        lista={`Formato: ${formato.name}`}
+        itens={formato.variants.map((v) => ({
+          item_id: `${formato.slug}--${v.lineSlug}`,
+          item_name: `${formato.name} — ${v.lineName}`,
+          item_category: 'Materiais Absorventes',
+          item_variant: v.lineName,
+        }))}
+      />
       <Hero>
         <Breadcrumbs
           trail={[

@@ -6,6 +6,13 @@ import { Icon } from '@/components/ui/Icon';
 import { LogoMark } from '@/components/ui/Logo';
 import { products } from '@/data/site';
 import { findQuoteProduct, type QuantityField } from '@/data/quote';
+import {
+  abrirOrcamento,
+  adicionarAoPedido,
+  removerDoPedido,
+  enviarLead,
+  falhaNoEnvio,
+} from '@/lib/analytics';
 import s from './QuoteModal.module.css';
 
 type Status = 'idle' | 'sending' | 'sent' | 'error';
@@ -93,6 +100,13 @@ export function QuoteModal({ open, onClose, productSlug }: Props) {
     setSlug('');
     setStatus('idle');
     setMessage('');
+
+    /* Abertura do pop-up: é o topo do funil de orçamento, e separa quem
+       demonstrou intenção de quem só passou pela página. */
+    abrirOrcamento(
+      productSlug ? 'pagina-de-produto' : 'cta-geral',
+      inicial ? { item_id: inicial.slug, item_name: inicial.name } : undefined,
+    );
   }, [open, productSlug]);
 
   /* Enquanto o pop-up está aberto, trava o scroll da página atrás. */
@@ -122,10 +136,15 @@ export function QuoteModal({ open, onClose, productSlug }: Props) {
     const entry = entryFor(next);
     if (!entry || cart.some((c) => c.slug === next)) return;
     setCart((prev) => [...prev, entry]);
+    adicionarAoPedido({ item_id: entry.slug, item_name: entry.name, quantity: 1 });
     setSlug(''); // libera o seletor para o próximo produto
   }
 
   function removeProduct(next: string) {
+    const saindo = cart.find((c) => c.slug === next);
+    if (saindo) {
+      removerDoPedido({ item_id: saindo.slug, item_name: saindo.name, quantity: 1 });
+    }
     setCart((prev) => prev.filter((c) => c.slug !== next));
   }
 
@@ -176,13 +195,27 @@ export function QuoteModal({ open, onClose, productSlug }: Props) {
       const body = (await res.json().catch(() => ({}))) as {
         ok?: boolean;
         error?: string;
+        leadId?: string;
       };
       if (!res.ok || !body.ok) {
         throw new Error(body.error || 'Não foi possível enviar sua solicitação.');
       }
+      /* Conversão. `lead_id` vem do backend e repete no evento do servidor,
+         para o GTM server-side deduplicar em vez de contar duas vezes. */
+      enviarLead({
+        leadId: body.leadId,
+        estado: typeof data.estado === 'string' ? data.estado : undefined,
+        produtos: cart.map((c) => c.name).join(', '),
+        itens: cart.map((c) => ({ item_id: c.slug, item_name: c.name, quantity: 1 })),
+      });
+
       setStatus('sent');
       form.reset();
     } catch (err) {
+      const motivo = err instanceof Error ? err.message : 'falha desconhecida';
+      // Separa abandono de falha técnica: sem isso os dois viram o mesmo buraco
+      // no funil.
+      falhaNoEnvio(motivo);
       setStatus('error');
       setMessage(
         err instanceof Error ? err.message : 'Não foi possível enviar sua solicitação.',

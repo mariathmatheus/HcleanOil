@@ -1,0 +1,110 @@
+/* Faixa de consentimento, ancorada ao rodapé da janela. */
+
+.faixa {
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  z-index: 60; /* acima do conteúdo, abaixo do pop-up de orçamento */
+
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  max-width: 940px;
+  margin: 0 auto;
+  padding: 16px 20px;
+
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--hc-white);
+  box-shadow: 0 12px 32px rgb(6 26 17 / 18%);
+
+  animation: subir 220ms ease-out;
+}
+
+@keyframes subir {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .faixa {
+    animation: none;
+  }
+}
+
+.texto {
+  margin: 0;
+  flex: 1 1 auto;
+  font: var(--type-body-sm);
+  color: var(--text-muted);
+}
+
+.acoes {
+  display: flex;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+
+.primario,
+.secundario {
+  padding: 10px 18px;
+  border-radius: var(--radius-pill, 999px);
+  font: var(--fw-medium) var(--fs-body-sm) / 1 var(--font-display);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 120ms, border-color 120ms, color 120ms;
+}
+
+.primario {
+  border: 1px solid var(--hc-green-300);
+  background: var(--hc-green-300);
+  color: var(--hc-green-900);
+}
+
+.primario:hover {
+  background: var(--hc-green-400);
+  border-color: var(--hc-green-400);
+}
+
+.secundario {
+  border: 1px solid var(--border-subtle);
+  background: transparent;
+  color: var(--text-strong);
+}
+
+.secundario:hover {
+  border-color: var(--hc-green-300);
+  color: var(--hc-green-600);
+}
+
+.primario:focus-visible,
+.secundario:focus-visible {
+  outline: 2px solid var(--hc-green-300);
+  outline-offset: 2px;
+}
+
+/* No telefone a faixa vira coluna e os botões ocupam a largura, com altura
+   de toque confortável. */
+@media (max-width: 720px) {
+  .faixa {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+
+  .acoes {
+    flex-direction: column-reverse;
+  }
+
+  .primario,
+  .secundario {
+    min-height: 44px;
+  }
+}

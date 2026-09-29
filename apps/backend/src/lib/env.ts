@@ -96,6 +96,27 @@ const schema = z.object({
   /** Prazo de entrega exibido nas condições da proposta. */
   PRAZO_ENTREGA: z.string().default('a combinar'),
 
+  /**
+   * Medição server-side (Stape, GTM server-side ou Measurement Protocol).
+   *
+   * O evento do navegador não chega quando um bloqueador barra o script, e é
+   * justamente no tráfego pago que eles são mais comuns. O servidor manda o
+   * lead direto, e o `lead_id` repetido nos dois caminhos deixa o container
+   * deduplicar em vez de contar duas vezes.
+   *
+   * Vazio desliga o envio: o site e o formulário seguem funcionando.
+   */
+  SGTM_URL: z
+    .string()
+    .optional()
+    .transform((v) => (v?.trim() ? v.trim().replace(/\/$/, '') : undefined)),
+
+  /** Chave opcional exigida pelo container server-side, se houver. */
+  SGTM_API_KEY: z
+    .string()
+    .optional()
+    .transform((v) => (v?.trim() ? v.trim() : undefined)),
+
   /** Origens liberadas no CORS, separadas por vírgula. */
   CORS_ORIGINS: z
     .string()

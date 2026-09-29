@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Container } from '@/components/ui/Layout';
+import { ContactLink } from '@/components/analytics/ContactLink';
 import { Icon } from '@/components/ui/Icon';
 import { Logo } from '@/components/ui/Logo';
 import { QuoteLink } from '@/components/quote/QuoteLink';
@@ -57,14 +58,24 @@ export function Footer() {
               de 18 anos apoiando operações de contenção e absorção no Brasil.
             </p>
             <div className={s.contactList}>
-              <a className={s.contactItem} href={`mailto:${site.contact.email}`}>
+              <ContactLink
+                canal="email"
+                origem="rodape"
+                className={s.contactItem}
+                href={`mailto:${site.contact.email}`}
+              >
                 <Icon name="mail" size={16} color="var(--hc-green-300)" />
                 {site.contact.email}
-              </a>
-              <a className={s.contactItem} href={site.contact.phoneHref}>
+              </ContactLink>
+              <ContactLink
+                canal="telefone"
+                origem="rodape"
+                className={s.contactItem}
+                href={site.contact.phoneHref}
+              >
                 <Icon name="phone" size={16} color="var(--hc-green-300)" />
                 {site.contact.phone}
-              </a>
+              </ContactLink>
               <span className={s.contactItem}>
                 <Icon name="globe" size={16} color="var(--hc-green-300)" />
                 {site.contact.site}

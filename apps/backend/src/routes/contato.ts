@@ -7,6 +7,8 @@ import { leadNotification, leadConfirmation } from '../emails/templates.js';
 import { propostaParaCliente, propostaParaEquipe } from '../emails/proposta.js';
 import { gerarProposta } from '../proposta/gerar.js';
 import { agendarProposta } from '../proposta/agenda.js';
+import { registrarLead } from '../lib/medicao.js';
+import { randomUUID } from 'node:crypto';
 
 export const contatoRouter = Router();
 
@@ -51,6 +53,10 @@ contatoRouter.post('/contato', limiter, async (req, res) => {
      serve tanto ao e-mail de notificação quanto ao cálculo da proposta. */
   const itens = extractItems(data);
 
+  /* Identificador do lead. Viaja na resposta e no evento server-side para o
+     container de medição deduplicar os dois caminhos. */
+  const leadId = randomUUID();
+
   const notification = leadNotification({
     ...data,
     items: itens,
@@ -78,7 +84,24 @@ contatoRouter.post('/contato', limiter, async (req, res) => {
 
   /* A partir daqui nada bloqueia a resposta: o lead já está registrado, e o
      cliente não deve esperar a geração do PDF para ver "enviado" na tela. */
-  res.json({ ok: true });
+  res.json({ ok: true, leadId });
+
+  /* Medição server-side, depois da resposta: o evento do navegador pode não
+     chegar por causa de bloqueador, e este não depende do cliente. Falha aqui
+     não afeta o lead, que já está na caixa comercial. */
+  registrarLead({
+    leadId,
+    nome: data.nome,
+    email: data.email,
+    telefone: data.telefone || undefined,
+    estado: data.estado || undefined,
+    produtos: data.produto || undefined,
+    itens,
+    // `_ga` traz o client id do GA4; sem ele o container trata como sessão nova.
+    clientId: typeof req.body?._ga === 'string' ? req.body._ga : undefined,
+    userAgent: req.get('user-agent'),
+    ip: req.ip,
+  }).catch(() => {});
 
   // A confirmação é cortesia: se falhar, o lead já está salvo — apenas registra.
   if (env.SEND_CONFIRMATION) {
