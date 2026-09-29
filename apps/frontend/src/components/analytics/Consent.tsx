@@ -18,13 +18,13 @@ import s from './Consent.module.css';
 
 const CHAVE = 'hclean-consent';
 
-/* Sem container configurado nada é coletado, e pedir consentimento para nada
-   só atrapalha quem está desenvolvendo ou revisando o site. */
-const MEDICAO_ATIVA = Boolean(process.env.NEXT_PUBLIC_GTM_ID);
+/* A medição é declarada em código (lib/ads.ts), então o banner sempre vale:
+   sem consentimento as tags ficam em modo restrito, sem cookie. */
+const MEDICAO_ATIVA = true;
 
 type Escolha = 'todos' | 'essenciais';
 
-/** Atualiza o Consent Mode e registra a escolha para o GTM reagir. */
+/** Atualiza o Consent Mode. */
 function aplicar(escolha: Escolha) {
   const concedido = escolha === 'todos' ? 'granted' : 'denied';
 

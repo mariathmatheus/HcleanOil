@@ -3,7 +3,7 @@ import localFont from 'next/font/local';
 import { Header } from '@/components/site/Header';
 import { Footer } from '@/components/site/Footer';
 import { QuoteProvider } from '@/components/quote/QuoteProvider';
-import { Gtm, GtmNoScript } from '@/components/analytics/Gtm';
+import { Gtag } from '@/components/analytics/Gtag';
 import { Consent } from '@/components/analytics/Consent';
 import { PageViews } from '@/components/analytics/PageViews';
 import { WhatsAppButton } from '@/components/site/WhatsAppButton';
@@ -101,10 +101,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="pt-BR" className={exo2.variable}>
       <head>
-        <Gtm />
+        <Gtag />
       </head>
       <body>
-        <GtmNoScript />
         <a className="skip-link" href="#conteudo">
           Pular para o conteúdo
         </a>

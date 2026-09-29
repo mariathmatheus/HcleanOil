@@ -1,14 +1,14 @@
 /**
  * Camada de eventos do site.
  *
- * Tudo sai pelo `dataLayer`, nunca direto para GA4, Meta ou Brevo. Quem decide
- * o destino de cada evento é o container do GTM: acrescentar uma ferramenta
- * vira configuração de painel, não deploy de código.
+ * Os eventos vão para o GA4 pelo gtag e também ficam no `dataLayer`. O site
+ * não tem container GTM hoje; se um dia tiver, ele encontra os eventos já
+ * prontos sem que nenhuma chamada precise mudar.
  *
  * Os nomes seguem o vocabulário de e-commerce do GA4 (`view_item`,
  * `add_to_cart`, `begin_checkout`, `generate_lead`). Não é uma loja, mas o
- * funil é o mesmo, e usar o vocabulário padrão libera os relatórios prontos
- * do GA4 e o catálogo de remarketing do Meta sem mapeamento manual.
+ * funil é o mesmo, e o vocabulário padrão libera os relatórios prontos do
+ * GA4 sem mapeamento manual.
  */
 
 /** Item no formato que o GA4 espera em `items`. */
@@ -38,11 +38,16 @@ declare global {
 }
 
 /**
- * Empurra um evento para o dataLayer.
+ * Emite um evento para o GA4 e o deixa no dataLayer.
  *
- * Silencioso quando o GTM não está configurado: o site precisa funcionar igual
- * sem nenhum identificador preenchido, tanto em desenvolvimento quanto se a
- * tag cair em produção.
+ * O envio ao GA4 é o que conta hoje: o site não tem container GTM, então um
+ * evento que ficasse só no dataLayer não seria lido por ninguém. O push
+ * permanece porque é barato e deixa a porta aberta para um container futuro
+ * sem mexer nas chamadas espalhadas pelo código.
+ *
+ * Silencioso quando o gtag ainda não carregou: ele é `afterInteractive`, e um
+ * clique muito rápido pode chegar antes. Perder um evento é melhor do que
+ * quebrar a página.
  */
 export function enviarEvento(evento: EventoPadrao): void {
   if (typeof window === 'undefined') return;
@@ -57,6 +62,13 @@ export function enviarEvento(evento: EventoPadrao): void {
   }
 
   window.dataLayer.push(evento);
+
+  /* O GA4 espera os campos de e-commerce no mesmo nível do evento, não dentro
+     de um envelope `ecommerce` — esse formato é do GTM. */
+  if (typeof window.gtag === 'function') {
+    const { event, ecommerce, ...resto } = evento;
+    window.gtag('event', event, { ...resto, ...(ecommerce ?? {}) });
+  }
 }
 
 /** Visualização de uma página de produto. */

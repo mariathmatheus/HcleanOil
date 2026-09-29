@@ -2,6 +2,7 @@
 
 import { site } from '@/data/site';
 import { contatoDireto } from '@/lib/analytics';
+import { conversao, CONVERSOES } from '@/lib/ads';
 import s from './WhatsAppButton.module.css';
 
 /**
@@ -23,7 +24,10 @@ export function WhatsAppButton() {
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Falar com um especialista pelo WhatsApp"
-      onClick={() => contatoDireto('whatsapp', 'botao-flutuante')}
+      onClick={() => {
+        contatoDireto('whatsapp', 'botao-flutuante');
+        conversao(CONVERSOES.whatsapp);
+      }}
     >
       {/* Marca do WhatsApp em caminho próprio: evita carregar uma biblioteca
           de ícones inteira por causa de um único glifo. */}

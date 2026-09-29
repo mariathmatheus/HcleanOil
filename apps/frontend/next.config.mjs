@@ -25,6 +25,11 @@ const nextConfig = {
        pior que o original. */
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],
     imageSizes: [256, 384],
+
+    /* Qualidades aceitas pelo otimizador. Sem declarar, o Next so permite 75
+       e ignora em silencio qualquer `quality` diferente no componente — foi o
+       que acontecia com o hero, que pedia 68 e recebia 75. */
+    qualities: [68, 75],
   },
   async redirects() {
     return [
