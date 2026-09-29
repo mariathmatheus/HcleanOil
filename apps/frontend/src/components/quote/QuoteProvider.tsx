@@ -8,7 +8,20 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { QuoteModal } from './QuoteModal';
+import dynamic from 'next/dynamic';
+
+/* O pop-up sai do bundle inicial.
+   Ele vive no layout, entao era renderizado no HTML de toda pagina — com os
+   580 registros de CSS e o JS do formulario — mesmo para quem nunca clica em
+   "Solicitar orcamento". Carregado sob demanda, esse peso deixa o caminho
+   critico e so chega quando o visitante abre o formulario.
+
+   `ssr: false` porque o conteudo do modal nao aparece na primeira pintura:
+   gera-lo no servidor so aumentaria o HTML sem nada visivel em troca. */
+const QuoteModal = dynamic(
+  () => import('./QuoteModal').then((m) => m.QuoteModal),
+  { ssr: false },
+);
 
 type QuoteContextValue = {
   /** Abre o formulário, opcionalmente já com um produto selecionado. */

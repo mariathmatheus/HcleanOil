@@ -229,7 +229,7 @@ export const products: Product[] = [
       { label: 'Aplicação', value: 'Longos períodos ou lançamento rápido' },
       { label: 'Dimensões', value: 'Fabricação sob medida' },
     ],
-    image: '/produtos/barreira-abfence.jpg',
+    image: '/produtos/barreira-abfence.webp',
   },
 
   /* ------------------------------------------------- linhas de absorvente */

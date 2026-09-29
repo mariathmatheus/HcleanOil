@@ -8,8 +8,11 @@ import s from './ProductCard.module.css';
 export function ProductCard({ product }: { product: Product }) {
   const category = findCategory(product.category);
 
+  /* Sem prefetch: o site é estático e responde em ~115ms, mas o App Router
+     baixava e desserializava o payload RSC de cada card visível — 121 kB de
+     trabalho de main thread por página, sem ganho perceptível na navegação. */
   return (
-    <Link href={`/produtos/${product.slug}`} className={s.card}>
+    <Link href={`/produtos/${product.slug}`} className={s.card} prefetch={false}>
       <div className={s.thumb}>
         <Image
           src={product.image}
@@ -43,7 +46,7 @@ export function FormatoCard({ formato }: { formato: Formato }) {
   const capa = formato.variants[0];
 
   return (
-    <Link href={`/produtos/formato/${formato.slug}`} className={s.card}>
+    <Link href={`/produtos/formato/${formato.slug}`} className={s.card} prefetch={false}>
       <div className={s.thumb}>
         <Image
           src={capa.image}

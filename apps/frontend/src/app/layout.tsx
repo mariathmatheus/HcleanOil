@@ -17,6 +17,12 @@ import '@/styles/globals.css';
  * Em WOFF2, não TTF: a compressão específica para fontes corta 65% do peso
  * (296 kB → 103 kB). Gerar com `node scripts/fonts-to-woff2.mjs`.
  *
+ * E subsetada para latin + latin-ext: 103 kB → 32 kB. O arquivo completo
+ * trazia cirílico e grego, que o site não usa, e uma tabela GPOS de 109 kB de
+ * pares de kerning — maior que os próprios contornos das letras. Ela ocupava
+ * a conexão justamente na janela em que a imagem do hero precisa pintar, que
+ * é o LCP da home. O eixo variável de peso (100–900) continua inteiro.
+ *
  * A itálica não entra: o site não usa itálico em lugar nenhum, e carregá-la
  * custava outros 107 kB no caminho crítico. Se algum texto precisar, é só
  * acrescentar a entrada com `style: 'italic'`.
@@ -24,7 +30,7 @@ import '@/styles/globals.css';
 const exo2 = localFont({
   src: [
     {
-      path: '../fonts/Exo2-VariableFont_wght.woff2',
+      path: '../fonts/Exo2-subset.woff2',
       weight: '100 900',
       style: 'normal',
     },
