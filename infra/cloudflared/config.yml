@@ -7,6 +7,10 @@
 #
 # Sem `tunnel:` nem `credentials-file:` — o container é autenticado pelo token
 # em TUNNEL_TOKEN, que já identifica qual túnel é.
+#
+# O túnel vive na conta Cloudflare do cliente, a mesma da zona
+# hcleanoil.com.br: um túnel só atende domínios da própria conta. Por isso o
+# domínio de staging, que fica noutra conta, não aparece aqui.
 
 ingress:
   # API do formulário de contato. Precisa vir antes da regra do site: a
@@ -25,12 +29,6 @@ ingress:
   - hostname: www.hcleanoil.com.br
     service: http://frontend:3000
 
-  # Domínio de staging, mantido enquanto a migração não conclui.
-  - hostname: hclean.nerdresolve.com
-    path: ^/api/.*
-    service: http://backend:4000
-  - hostname: hclean.nerdresolve.com
-    service: http://frontend:3000
 
   # Exigido pelo cloudflared: toda configuração termina numa regra sem
   # hostname, que responde ao que não casou com nada acima.
