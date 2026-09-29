@@ -6,6 +6,7 @@ import { env } from '../lib/env.js';
 import { leadNotification, leadConfirmation } from '../emails/templates.js';
 import { propostaParaCliente, propostaParaEquipe } from '../emails/proposta.js';
 import { gerarProposta } from '../proposta/gerar.js';
+import { agendarProposta } from '../proposta/agenda.js';
 
 export const contatoRouter = Router();
 
@@ -92,12 +93,15 @@ contatoRouter.post('/contato', limiter, async (req, res) => {
     });
   }
 
-  /* Proposta em PDF, logo depois da confirmação.
+  /* Proposta em PDF, alguns minutos depois — o tempo de quem monta a cotação
+     à mão. O agendamento é gravado em disco antes de a requisição terminar,
+     então um deploy no meio da janela não perde o envio.
+
      Só sai automaticamente quando todo item tem preço de tabela — havendo
      item sob cotação (hoje só o tanque), a equipe precifica à mão. */
   if (env.ENVIAR_PROPOSTA) {
-    enviarPropostaAutomatica(data, itens).catch((err) => {
-      console.error('[proposta] falha ao gerar ou enviar:', err);
+    agendarProposta(data, itens, enviarPropostaAutomatica).catch((err) => {
+      console.error('[proposta] falha ao agendar:', err);
     });
   }
 });
@@ -108,7 +112,7 @@ contatoRouter.post('/contato', limiter, async (req, res) => {
  * Roda depois da resposta HTTP: renderizar o PDF leva cerca de um segundo, e
  * segurar o formulário por isso pioraria a experiência de quem enviou.
  */
-async function enviarPropostaAutomatica(
+export async function enviarPropostaAutomatica(
   data: ContactPayload,
   itens: QuoteItem[],
 ): Promise<void> {

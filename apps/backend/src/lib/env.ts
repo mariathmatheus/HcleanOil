@@ -81,6 +81,18 @@ const schema = z.object({
    */
   PROPOSTA_INICIAL: z.coerce.number().default(0),
 
+  /**
+   * Janela de atraso do envio da proposta, em segundos.
+   *
+   * A proposta fica pronta em segundos, e uma cotação instantânea denuncia
+   * que ninguém olhou o pedido. O atraso é sorteado dentro desta janela a
+   * cada pedido: um valor fixo teria a mesma cara de automação.
+   *
+   * Zerar os dois desliga o atraso e a proposta volta a sair na hora.
+   */
+  PROPOSTA_ATRASO_MIN_S: z.coerce.number().min(0).default(300),
+  PROPOSTA_ATRASO_MAX_S: z.coerce.number().min(0).default(600),
+
   /** Prazo de entrega exibido nas condições da proposta. */
   PRAZO_ENTREGA: z.string().default('a combinar'),
 
