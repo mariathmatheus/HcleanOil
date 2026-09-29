@@ -1,14 +1,24 @@
 /**
- * Conversões do Google Ads.
+ * Identificadores de medição.
  *
- * O site não usa Google Tag Manager: as tags são declaradas aqui e disparadas
- * pelo gtag. Em troca da simplicidade, cada tag nova exige um deploy — se um
- * dia entrar um container GTM, este arquivo sai e a configuração passa a ser
- * de painel, porque os eventos do dataLayer já existem (ver lib/analytics.ts).
+ * O site não dispara conversão em código: empurra eventos no dataLayer (ver
+ * lib/analytics.ts) e o container do GTM decide o que vira conversão, para
+ * onde vai e com que rótulo. Disparar nos dois lugares contaria cada
+ * conversão duas vezes.
  *
- * Os rótulos abaixo são públicos: aparecem no HTML de qualquer site que use
- * estas conversões. O que não é público é o acesso à conta, que eles não dão.
+ * Os rótulos abaixo ficam como referência de quem configura o painel — o
+ * código não os usa. São públicos de qualquer forma: aparecem no HTML de
+ * qualquer site que use estas conversões.
  */
+
+/**
+ * Container do Google Tag Manager, e o domínio que o serve.
+ *
+ * `api.hcleanoil.com.br` é o endpoint Stape da própria zona: cookies de
+ * primeira parte e um nome que os bloqueadores não conhecem.
+ */
+export const GTM_ID = 'GTM-KJFXS8JX';
+export const GTM_HOST = 'https://api.hcleanoil.com.br';
 
 /** Conta de conversões e remarketing. */
 export const ADS_ID = 'AW-17481303192';

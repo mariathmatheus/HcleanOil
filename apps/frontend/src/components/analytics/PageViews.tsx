@@ -2,8 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
-import { guardarUtms } from '@/lib/analytics';
-import { ADS_ID, GA4_ID } from '@/lib/ads';
+import { enviarEvento, guardarUtms } from '@/lib/analytics';
 
 /**
  * Registra a troca de página na navegação sem recarga.
@@ -14,12 +13,10 @@ import { ADS_ID, GA4_ID } from '@/lib/ads';
  * página de produto aparecia como uma visita só, e a landing page de cada
  * conversão saía errada.
  *
- * O `gtag('config')` conta só a página de entrada. Sem este envio, um
- * visitante que chega pela home e converte na página de produto aparece como
- * uma visita só, e a landing page da conversão sai errada no relatório.
- *
- * Vai para o GA4 e para o Ads: o segundo é o que mantém a audiência de
- * remarketing recebendo as páginas navegadas, não só a de entrada.
+ * O nome é `page_view_spa` e não `page_view` de propósito: a tag do GA4 no
+ * container já conta a página de entrada pelo gatilho padrão, e repetir o
+ * nome faria a primeira contar duas vezes. No painel, a tag escuta este
+ * evento além do gatilho de carga.
  */
 export function PageViews() {
   const pathname = usePathname();
@@ -38,13 +35,11 @@ export function PageViews() {
       return;
     }
 
-    if (typeof window.gtag !== 'function') return;
-
-    window.gtag('event', 'page_view', {
+    enviarEvento({
+      event: 'page_view_spa',
       page_path: pathname,
       page_location: window.location.href,
       page_title: document.title,
-      send_to: [GA4_ID, ADS_ID],
     });
   }, [pathname]);
 

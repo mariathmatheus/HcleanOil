@@ -14,7 +14,6 @@ import {
   enviarLead,
   falhaNoEnvio,
 } from '@/lib/analytics';
-import { conversao, CONVERSOES } from '@/lib/ads';
 import s from './QuoteModal.module.css';
 
 type Status = 'idle' | 'sending' | 'sent' | 'error';
@@ -211,15 +210,9 @@ export function QuoteModal({ open, onClose, productSlug }: Props) {
       }
       /* Conversão. `lead_id` vem do backend e repete no evento do servidor,
          para o GTM server-side deduplicar em vez de contar duas vezes. */
-      /* Conversão de lead com o valor estimado do pedido: é o que permite ao
-         Google Ads otimizar por valor em vez de contar todo lead igual. O
-         leadId vai como transaction_id para o Ads deduplicar reenvios. */
-      conversao(CONVERSOES.lead, {
-        value: body.valor,
-        currency: 'BRL',
-        transaction_id: body.leadId,
-      });
-
+      /* O evento carrega valor e lead_id; a tag de conversão do Ads escuta
+         `generate_lead` no container e usa os dois — o valor para o lance por
+         valor, o id para não contar o mesmo lead duas vezes. */
       enviarLead({
         leadId: body.leadId,
         valor: body.valor,

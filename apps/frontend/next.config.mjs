@@ -38,6 +38,19 @@ const nextConfig = {
          permanente para a home preserva esse tráfego. */
       { source: '/contato', destination: '/', permanent: true },
 
+      /* Atalhos em inglês para o rastreamento de mídia.
+         São 302, não 301: a URL canônica continua sendo a em português, que
+         é a que carrega a palavra-chave que o comprador busca. Um 301 pediria
+         ao Google para trocar a URL indexada, que é o oposto do que se quer —
+         aqui o atalho serve a campanha, não ao índice. */
+      { source: '/containmentbarrier', destination: '/produtos/barreira-de-contencao-seafence', permanent: false },
+      { source: '/whiteline', destination: '/produtos/linha-branca', permanent: false },
+      { source: '/greenline', destination: '/produtos/linha-verde', permanent: false },
+      { source: '/grayline', destination: '/produtos/linha-cinza', permanent: false },
+      { source: '/absorbentmaterials', destination: '/produtos#absorventes', permanent: false },
+      { source: '/kits', destination: '/produtos/kit-sopep', permanent: false },
+      { source: '/oiltank', destination: '/produtos/tanque-terrestre', permanent: false },
+
       /* www para o domínio canônico. As duas formas servindo o mesmo conteúdo
          dividiriam a autoridade entre dois endereços e o Google trataria como
          duplicado. O 308 preserva o método e passa o sinal de permanente. */

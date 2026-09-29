@@ -2,7 +2,6 @@
 
 import { useEffect, useRef } from 'react';
 import { verProduto, verLista, type AnalyticsItem } from '@/lib/analytics';
-import { conversao, remarketing, labelDoProduto, LABEL_ABSORVENTES } from '@/lib/ads';
 
 /**
  * Dispara a visualização de produto ou de lista.
@@ -22,15 +21,10 @@ export function ViewItem({ item }: { item: AnalyticsItem }) {
   useEffect(() => {
     if (jaEnviado.current === item.item_id) return;
     jaEnviado.current = item.item_id;
+    /* O evento leva item_id, item_name e item_category. É por eles que o
+       container dispara a conversão de visualização e monta a audiência de
+       remarketing — as tags vivem no painel, não aqui. */
     verProduto(item);
-
-    /* Alimenta a audiência de remarketing de quem olhou o produto sem
-       pedir orçamento. */
-    const label = labelDoProduto(item.item_id);
-    if (label) conversao(label);
-
-    /* Identifica o produto para o remarketing dinâmico. */
-    remarketing([{ id: item.item_id }]);
   }, [item.item_id]);
 
   return null;
@@ -44,11 +38,6 @@ export function ViewItemList({ lista, itens }: { lista: string; itens: Analytics
     if (jaEnviado.current === lista) return;
     jaEnviado.current = lista;
     verLista(lista, itens);
-
-    /* Página de formato compara as três linhas: entra no rótulo geral de
-       absorventes, que é como a campanha foi montada. */
-    conversao(LABEL_ABSORVENTES);
-    remarketing(itens.map((i) => ({ id: i.item_id })));
   }, [lista]);
 
   return null;
