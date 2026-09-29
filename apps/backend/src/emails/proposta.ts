@@ -64,7 +64,7 @@ export function propostaParaCliente(data: ContactPayload, proposta: PropostaGera
     ${resumo(proposta)}
     ${divider()}
     ${p(
-      'A proposta tem validade de 15 dias. Qualquer ajuste de quantidade ou dúvida sobre aplicação, é só responder a este e-mail.',
+      'A proposta tem validade de 30 dias. Qualquer ajuste de quantidade ou dúvida sobre aplicação, é só responder a este e-mail.',
     )}
     ${assinatura()}
   `;
@@ -84,7 +84,7 @@ export function propostaParaCliente(data: ContactPayload, proposta: PropostaGera
     `Frete: ${proposta.orcamento.frete.rotulo}`,
     `Total: ${moeda(proposta.orcamento.total)}`,
     '',
-    'Validade de 15 dias. Qualquer dúvida, é só responder a este e-mail.',
+    'Validade de 30 dias. Qualquer dúvida, é só responder a este e-mail.',
     '',
     'Equipe Comercial',
     'HCLEAN Equipamentos Ambientais Ltda',
@@ -148,7 +148,7 @@ export function propostaParaEquipe(data: ContactPayload, proposta: PropostaGerad
   ].join('\n');
 
   return {
-    subject: `[COTAÇÃO MANUAL] Proposta ${proposta.numero} — ${data.empresa}`,
+    subject: `Cotação manual — Proposta ${proposta.numero} — ${data.empresa}`,
     html: wrap(body, `Proposta ${proposta.numero} precisa de cotação manual`),
     text: texto,
   };

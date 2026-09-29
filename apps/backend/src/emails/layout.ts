@@ -70,6 +70,12 @@ export function wrap(bodyHtml: string, preheader = ''): string {
 <html xmlns="http://www.w3.org/1999/xhtml" lang="pt-BR">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<!-- Sem isto o Gmail e o Apple Mail invertem as cores por conta propria no
+     modo escuro, e a faixa verde-escura com texto claro pode virar texto
+     claro sobre fundo claro. Declarar que a peca entende os dois modos faz o
+     cliente respeitar as cores em vez de adivinhar. -->
+<meta name="color-scheme" content="light dark" />
+<meta name="supported-color-schemes" content="light dark" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="x-apple-disable-message-reformatting" />
 <title>HCLEAN</title>
@@ -82,11 +88,15 @@ export function wrap(bodyHtml: string, preheader = ''): string {
   <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;background-color:${PAPER};">
     <tr>
       <td align="center" style="padding:24px 12px;">
-        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600"
-               style="border-collapse:collapse;width:600px;max-width:600px;background-color:#FFFFFF;border:1px solid ${BORDER};">
+        <!-- width:100% com max-width:600px: o atributo width="600" e o
+             max-width cobrem o Outlook, que ignora o percentual, enquanto no
+             celular a tabela encolhe em vez de cortar quase metade do
+             conteudo. A maioria dos leads B2B abre no telefone. -->
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"
+               style="border-collapse:collapse;width:100%;max-width:600px;background-color:#FFFFFF;border:1px solid ${BORDER};">
           ${header()}
           <tr>
-            <td style="padding:32px 34px 34px;">
+            <td style="padding:32px 24px 34px;">
               ${bodyHtml}
             </td>
           </tr>

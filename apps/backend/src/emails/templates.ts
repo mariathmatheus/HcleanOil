@@ -53,6 +53,12 @@ export function leadNotification(
       value: `<a href="tel:${escapeHtml(data.telefone.replace(/\D/g, ''))}" style="color:${GREEN_800};">${escapeHtml(data.telefone)}</a>`,
     });
   }
+  /* O estado define o frete (CIF no Sudeste a partir de R$ 1.000, FOB no
+     resto) e aparece na proposta, mas faltava no e-mail — a equipe recebia o
+     lead sem saber para onde entregar. */
+  if (data.estado) {
+    rows.push({ label: 'Estado de entrega', value: escapeHtml(data.estado) });
+  }
   if (data.produto) {
     rows.push({ label: 'Produto de interesse', value: escapeHtml(data.produto) });
   }
@@ -95,6 +101,7 @@ export function leadNotification(
       `Empresa: ${data.empresa}`,
       `E-mail: ${data.email}`,
       data.telefone ? `Telefone: ${data.telefone}` : null,
+      data.estado ? `Estado de entrega: ${data.estado}` : null,
       data.produto ? `Produto de interesse: ${data.produto}` : null,
       ...(data.items ?? []).map((i) => `${i.label}: ${i.value}`),
       `Recebido em: ${data.receivedAt}`,

@@ -145,6 +145,7 @@ contatoRouter.post('/contato', limiter, async (req, res) => {
     const confirmation = leadConfirmation(data);
     sendMail({
       to: data.email,
+      replyTo: env.MAIL_TO,
       subject: confirmation.subject,
       html: confirmation.html,
       text: confirmation.text,
@@ -208,7 +209,12 @@ export async function enviarPropostaAutomatica(
   const email = propostaParaCliente(data, proposta);
   await sendMail({
     to: data.email,
-    cc: env.MAIL_TO,
+    /* Cópia oculta, não `cc`: em cópia visível o cliente enxerga a caixa
+       interna, e um "responder a todos" dele vira ruído na equipe. */
+    bcc: env.MAIL_TO,
+    /* O corpo diz "é só responder a este e-mail", então a resposta precisa
+       chegar na caixa comercial — não no remetente de disparo. */
+    replyTo: env.MAIL_TO,
     subject: email.subject,
     html: email.html,
     text: email.text,

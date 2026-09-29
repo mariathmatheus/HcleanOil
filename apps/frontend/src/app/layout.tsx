@@ -66,10 +66,13 @@ export const metadata: Metadata = {
     title: `${site.name} — ${site.titleShort}`,
     description: site.description,
   },
+  /* Só o formato do card. Título e descrição ficam de fora de propósito:
+     no Next, `openGraph` e `twitter` não se cascateiam entre si, então um
+     título declarado aqui venceria em toda subpágina e os cards sairiam com
+     o texto da home. Sem eles, quem lê twitter:* (Slack e LinkedIn, entre
+     outros) cai no og:title da própria página, que já está correto. */
   twitter: {
     card: 'summary_large_image',
-    title: `${site.name} — ${site.titleShort}`,
-    description: site.description,
   },
   robots: {
     index: true,

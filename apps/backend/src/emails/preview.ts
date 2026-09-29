@@ -25,6 +25,7 @@ const sample = {
   empresa: 'Terminal Portuário Exemplo',
   email: 'contato@exemplo.com.br',
   telefone: '(11) 90000-0000',
+  estado: 'RJ',
   produto: 'Barreira de Contenção SeaFence',
   mensagem:
     'Precisamos avaliar barreiras de contenção para o píer de transferência de combustível. ' +
