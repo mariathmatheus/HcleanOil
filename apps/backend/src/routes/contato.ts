@@ -9,6 +9,7 @@ import { gerarProposta } from '../proposta/gerar.js';
 import { montarOrcamento } from '../proposta/orcamento.js';
 import { agendarProposta } from '../proposta/agenda.js';
 import { registrarLead } from '../lib/medicao.js';
+import { gravarLead, enviarEmSegundoPlano } from '../leads/fila.js';
 import { randomUUID } from 'node:crypto';
 
 export const contatoRouter = Router();
@@ -24,6 +25,14 @@ const limiter = rateLimit({
     ok: false,
     error: 'Muitas solicitações. Tente novamente em alguns minutos.',
   },
+
+  /* Só pedido aceito consome a cota. Antes, quem errasse o telefone três vezes
+     — e o 400 de validação é justamente o erro de quem está preenchendo de
+     verdade — gastava mais da metade da cota antes de conseguir enviar o
+     primeiro lead. O robô continua contido: ele busca o 200, e é o 200 que
+     conta. (`skipFailedRequests` do express-rate-limit 7.5.0 devolve o hit
+     quando a resposta sai com status >= 400.) */
+  skipFailedRequests: true,
 });
 
 /**
@@ -84,34 +93,58 @@ contatoRouter.post('/contato', limiter, async (req, res) => {
   });
   const valorLead = orcamento.total > 0 ? orcamento.total : env.VALOR_LEAD_SEM_PRECO;
 
-  const notification = leadNotification({
-    ...data,
-    items: itens,
-    receivedAt: formatDate(new Date()),
-  });
+  /* Hora em que o pedido chegou, congelada aqui. Vai no arquivo da fila para
+     que um reenvio de amanhã continue dizendo "recebido em" a hora certa, e
+     não a hora em que o SMTP voltou. */
+  const recebidoEm = formatDate(new Date());
+  const naFila = { leadId, recebidoEm, valor: valorLead, dados: data, itens };
 
+  /* O lead é o que não pode se perder — e é justamente por isso que o e-mail
+     deixou de ser o que a resposta espera.
+
+     Antes a rota aguardava o sendMail e devolvia 502 em falha. Quando o MX da
+     zona passou a apontar para um túnel que não fala SMTP, cada envio pendurou
+     vinte segundos e voltou 502: o usuário viu erro e o pedido não ficou em
+     lugar nenhum, porque nada o havia gravado. O que não pode se perder tem de
+     estar em disco antes de a resposta sair, não na caixa de e-mail.
+
+     Gravação em disco leva milissegundos e não depende de rede. */
   try {
-    // O lead é o que não pode se perder — envia e confirma antes de responder.
-    await sendMail({
-      to: env.MAIL_TO,
-      subject: notification.subject,
-      html: notification.html,
-      text: notification.text,
-      // Responder no cliente de e-mail fala direto com quem preencheu.
-      replyTo: `"${data.nome}" <${data.email}>`,
-    });
+    await gravarLead(naFila);
   } catch (err) {
-    console.error('[contato] falha ao enviar notificação:', err);
-    return res.status(502).json({
-      ok: false,
-      error:
-        'Não foi possível enviar sua solicitação agora. Tente novamente ou escreva para contato@hcleanoil.com.br.',
-    });
+    /* Disco cheio ou volume somente-leitura: o único caso em que não existe
+       cópia do lead. Aqui o e-mail bloqueante volta a ser a melhor chance —
+       melhor esperar o SMTP do que descartar o pedido em silêncio. */
+    console.error('[contato] falha ao gravar lead em disco:', err);
+    try {
+      const notificacao = leadNotification({ ...data, items: itens, receivedAt: recebidoEm });
+      await sendMail({
+        to: env.MAIL_TO,
+        subject: notificacao.subject,
+        html: notificacao.html,
+        text: notificacao.text,
+        replyTo: `"${data.nome}" <${data.email}>`,
+      });
+    } catch (erroEnvio) {
+      console.error('[contato] lead sem disco e sem e-mail:', erroEnvio);
+      return res.status(502).json({
+        ok: false,
+        error:
+          'Não foi possível enviar sua solicitação agora. Tente novamente ou escreva para contato@hcleanoil.com.br.',
+      });
+    }
   }
 
-  /* A partir daqui nada bloqueia a resposta: o lead já está registrado, e o
-     cliente não deve esperar a geração do PDF para ver "enviado" na tela. */
+  /* A partir daqui nada bloqueia a resposta: o lead já está registrado em
+     disco, e o cliente não deve esperar nem o SMTP nem a geração do PDF para
+     ver "enviado" na tela. O formato desta resposta é contrato com o
+     frontend — `leadId` e `valor` alimentam o evento generate_lead. */
   res.json({ ok: true, leadId, valor: valorLead });
+
+  /* Notificação para a caixa comercial, agora depois da resposta. Falha aqui
+     não chega ao usuário: a fila retenta com recuo e, se o SMTP continuar
+     fora, o arquivo espera a próxima subida do processo. */
+  enviarEmSegundoPlano(naFila);
 
   /* Medição server-side, depois da resposta: o evento do navegador pode não
      chegar por causa de bloqueador, e este não depende do cliente. Falha aqui
@@ -140,7 +173,8 @@ contatoRouter.post('/contato', limiter, async (req, res) => {
     ip: req.ip,
   }).catch(() => {});
 
-  // A confirmação é cortesia: se falhar, o lead já está salvo — apenas registra.
+  /* A confirmação é cortesia: se falhar, o lead já está em disco e a fila
+     cuida da notificação — apenas registra. Segue não-bloqueante. */
   if (env.SEND_CONFIRMATION) {
     const confirmation = leadConfirmation(data);
     sendMail({
@@ -197,6 +231,9 @@ export async function enviarPropostaAutomatica(
     const aviso = propostaParaEquipe(data, proposta);
     await sendMail({
       to: env.MAIL_TO,
+      /* O corpo deste aviso pede para responder ao cliente, mas sem isto o
+         botão "Responder" caía na própria caixa que enviou. */
+      replyTo: `"${data.nome}" <${data.email}>`,
       subject: aviso.subject,
       html: aviso.html,
       text: aviso.text,

@@ -31,8 +31,14 @@ function assinatura(): string {
 
 /** Resumo dos itens, para o corpo do e-mail. */
 function resumo(proposta: PropostaGerada) {
+  /* `dataTable` já escapa o `label` — escapar aqui também produzia escape
+     duplo, e a descrição vem de `item.label`, texto que o cliente digita no
+     formulário. Uma aspa em 'Barreira SeaFence 8"' chegava à proposta como
+     `8&quot;` literal na tela; um `&` viraria `&amp;`. O `value` continua
+     sendo escapado aqui, porque `dataTable` o insere como HTML de propósito
+     (é onde entram <a> e <span>). */
   const linhas = proposta.orcamento.linhas.map((l) => ({
-    label: escapeHtml(l.descricao),
+    label: l.descricao,
     value:
       l.total !== undefined
         ? `${l.quantidade} ${l.unidade} · ${moeda(l.total)}`

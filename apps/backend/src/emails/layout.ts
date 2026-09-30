@@ -35,7 +35,11 @@ function header(): string {
             <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
               <tr>
                 <td style="vertical-align:middle;padding-right:14px;">
-                  <img src="cid:hclean-mark" width="46" height="46" alt=""
+                  <!-- O texto alternativo existe de propósito: no Outlook
+                       corporativo, caixa de boa parte do público B2B, a
+                       imagem vem bloqueada por padrão, e sem ele o topo do
+                       e-mail ficava um buraco sem rótulo nenhum. -->
+                  <img src="cid:hclean-mark" width="46" height="46" alt="HCLEAN"
                        style="display:block;border:0;outline:none;text-decoration:none;width:46px;height:46px;" />
                 </td>
                 <td style="vertical-align:middle;">

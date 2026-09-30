@@ -13,6 +13,18 @@ export function getTransporter(): Transporter {
     // 465 usa TLS implícito; nas demais portas o STARTTLS é negociado.
     secure: env.SMTP_SECURE ?? env.SMTP_PORT === 465,
     auth: { user: env.SMTP_USER, pass: env.SMTP_PASS },
+
+    /* Prazos explícitos. O padrão do nodemailer para abrir a conexão é de dois
+       minutos, e o socket espera dez: um SMTP_HOST que aponte para um endereço
+       morto (foi o que aconteceu quando o alvo do MX virou CNAME do túnel)
+       segura a resposta do formulário até o sistema desistir do TCP. Quem
+       preencheu fica olhando o botão girar e a borda da Cloudflare corta em
+       100 s. Dez segundos é folga de sobra para este servidor, que responde o
+       handshake em menos de dois. */
+    connectionTimeout: 10_000,
+    greetingTimeout: 10_000,
+    socketTimeout: 20_000,
+
     /* Quando SMTP_HOST é um endereço que o certificado não cobre, o nome a
        validar vem de SMTP_SERVERNAME. A verificação continua ligada: o que
        muda é contra qual nome ela é feita, não se ela acontece. */
