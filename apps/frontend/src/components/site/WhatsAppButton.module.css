@@ -69,10 +69,25 @@
      E não há o que perder: a faixa é a decisão que a pessoa precisa tomar
      antes de qualquer outra, e o botão volta assim que ela responde.
 
-     Quem liga e desliga é o atributo que o próprio componente marca, e não
-     um seletor que precise enxergar a faixa: entre módulos de CSS o alcance
-     é frágil, e um atributo no próprio elemento sempre vence. */
-  .botao[data-recolhido='true'] {
+     Quem liga e desliga é a PRESENÇA da faixa no documento, lida por
+     `:has()`. Antes era um atributo `data-recolhido` que o próprio
+     componente marcava — e para marcá-lo o botão precisava ser componente de
+     cliente, com `useState` e um `MutationObserver` no `<html>` observando a
+     variável `--consent-lift` aparecer e desaparecer. Era JavaScript para
+     descobrir uma condição que já está no DOM.
+
+     O gancho é um `id` no elemento da faixa (`#consent-faixa`), e não a
+     classe com hash do módulo dela — mas precisa vir dentro de `:global()`:
+     o renomeador do CSS Module reescreve `id` junto com as classes, e sem o
+     `:global` este seletor sai do build procurando
+     `#WhatsAppButton-module__hash__consent-faixa`, que não existe em
+     lugar nenhum (medido: a regra compilava e nunca casava).
+
+     A faixa é irmã deste botão dentro do `<body>` e vem DEPOIS dele na
+     árvore, e é por isso que a condição sobe até o `body`: um seletor de
+     irmão só olha para frente, `:has()` no ancestral comum vê os dois em
+     qualquer ordem. */
+  body:has(:global(#consent-faixa)) .botao {
     opacity: 0;
     visibility: hidden;
     pointer-events: none;

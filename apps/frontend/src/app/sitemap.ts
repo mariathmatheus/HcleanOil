@@ -1,9 +1,11 @@
 import type { MetadataRoute } from 'next';
-import { products, site } from '@/data/site';
+import { contentUpdatedAt, products, site } from '@/data/site';
 import { formatos } from '@/data/formatos';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const now = new Date();
+  /* Data da ultima mudanca de CONTEUDO, nao a hora do build — ver
+     `contentUpdatedAt` em data/site.ts para o porque. */
+  const now = new Date(contentUpdatedAt);
 
   const staticRoutes = [
     { path: '', priority: 1 },

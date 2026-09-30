@@ -44,6 +44,22 @@ export const site = {
   },
 } as const;
 
+/**
+ * Data da ultima alteracao real do conteudo do catalogo, em ISO.
+ *
+ * O `sitemap.ts` usava `new Date()`, que e a hora do BUILD: qualquer deploy —
+ * um ajuste de CSS, uma variavel de ambiente — reescrevia o `lastmod` das 18
+ * URLs afirmando que todas mudaram naquele instante. Nenhuma tinha mudado. O
+ * Google usa `lastmod` para decidir o que revisitar e passa a ignorar o sinal
+ * de um site que o mente; e nao ha `.git` na imagem Docker para inferir a data
+ * do commit no build.
+ *
+ * Portanto: constante, atualizada A MAO quando o texto ou os dados tecnicos de
+ * um produto mudarem de fato. Se voce editou `products`, `categories`, `faq`
+ * ou `formatos.ts`, atualize esta linha no mesmo commit.
+ */
+export const contentUpdatedAt = '2026-09-30';
+
 export const nav = [
   { href: '/', label: 'Início' },
   { href: '/produtos', label: 'Produtos' },
@@ -138,6 +154,24 @@ export type Product = {
   name: string;
   category: Category['slug'];
   lead: string;
+  /**
+   * Título e descrição para o resultado de busca, quando o nome comercial não
+   * é o que o comprador digita.
+   *
+   * O `name` é o nome de catálogo e continua sendo o <h1> e o nome no JSON-LD.
+   * Mas "Linha Branca" e "Tanque Terrestre" não têm volume de busca: quem
+   * compra procura "absorvente de óleo" e "tanque de contenção". O slug já foi
+   * corrigido para carregar o termo; o <title> ficou para trás.
+   *
+   * `seoDescription` existe porque o `lead` é uma frase de vitrine, de 68 a 98
+   * caracteres — o Google reserva de 140 a 160 e preenchia o resto com texto
+   * pinçado da página. Aqui a descrição é escrita no tamanho certo.
+   *
+   * Regra: só afirma o que a própria página afirma. Nenhum número, norma ou
+   * material que não esteja em `about`, `features` ou `specs`.
+   */
+  seoTitle?: string;
+  seoDescription?: string;
   about: string[];
   applications: string[];
   features: string[];
@@ -174,6 +208,9 @@ export const products: Product[] = [
     name: 'Barreira de Contenção SeaFence',
     category: 'barreiras-de-contencao',
     lead: 'Barreira flutuante em lona reforçada para contenção de derramamentos em operações de resposta.',
+    seoTitle: 'Barreira de Contenção SeaFence | HCLEAN',
+    seoDescription:
+      'Barreira de contenção flutuante em lona de poliéster revestida de PVC, 1.190 g/m², com bolsa para cabo de aço e corrente de lastro. Fabricação sob medida.',
     about: [
       'Barreira de contenção em lona confeccionada e reforçada, composta por fios de poliéster revestidos por PVC em ambas as faces, que garantem maior resistência mecânica. O material, denominado FORTFLEX BP 1235 na cor laranja, tem gramatura de 1.190 g/m² e espessura média de 0,95 mm.',
       'A formulação contém anti-UV, antioxidante, antifungo, plastificante polimérico e borracha nitrílica (NBR) em sua composição.',
@@ -211,6 +248,9 @@ export const products: Product[] = [
     name: 'Barreira de Contenção ABFence',
     category: 'barreiras-de-contencao',
     lead: 'Barreira flutuante rígida para longos períodos ou lançamento rápido.',
+    seoTitle: 'Barreira de Contenção ABFence | HCLEAN',
+    seoDescription:
+      'Barreira de contenção flutuante rígida para longos períodos ou lançamento rápido, com flutuadores em polietileno de alta densidade. Todas as medidas.',
     about: [
       'A AB-FENCE é uma barreira de contenção flutuante para longos períodos ou rápido lançamento, fabricada a partir de materiais reforçados e projetada para suportar os efeitos danosos da abrasão, da radiação UV, do óleo e da degradação marinha.',
       'Os flutuadores coloridos e brilhantes são fabricados com material de elevada resistência à abrasão. Os flutuadores de polietileno de alta densidade são conectados ao tecido de base com acessórios em aço inoxidável, e são utilizados em ambos os tamanhos de barreira. Fabricamos todas as medidas.',
@@ -245,6 +285,9 @@ export const products: Product[] = [
     name: 'Linha Branca — Absorventes para hidrocarbonetos',
     category: 'absorventes',
     lead: 'Absorventes sintéticos para petróleo e derivados, que recolhem o produto sem absorver água.',
+    seoTitle: 'Absorvente de Óleo — Linha Branca | HCLEAN',
+    seoDescription:
+      'Absorvente de óleo sintético para petróleo e derivados: recolhe o hidrocarboneto sem absorver água. Cordão, manta, rolo, travesseiro e barreira absorvente.',
     about: [
       'A Linha Branca reúne os absorventes sintéticos indicados para petróleo e derivados (hidrocarbonetos). Recupera as substâncias recolhidas sem absorver água, o que a torna adequada para operações sobre lâmina d’água.',
       'Disponível em seis formatos, para cobrir desde a contenção do perímetro até a absorção pontual de gotejamentos.',
@@ -329,6 +372,9 @@ export const products: Product[] = [
     name: 'Linha Cinza — Absorventes para líquidos em geral',
     category: 'absorventes',
     lead: 'Absorventes sintéticos de uso geral, para líquidos à base de água, detergentes, solventes e óleos.',
+    seoTitle: 'Absorvente Universal — Linha Cinza | HCLEAN',
+    seoDescription:
+      'Absorvente universal para líquidos em geral: água, detergentes, solventes e óleos. Disponível em cordão, manta, rolo e travesseiro para a sua operação.',
     about: [
       'A Linha Cinza reúne os absorventes sintéticos de uso geral, capazes de absorver líquidos à base de água, detergentes, solventes, óleos e muitos outros produtos.',
       'É a linha indicada para rotinas de manutenção, proteção de piso e contenção preventiva em torno de maquinário.',
@@ -393,6 +439,9 @@ export const products: Product[] = [
     name: 'Linha Verde — Absorventes para líquidos agressivos',
     category: 'absorventes',
     lead: 'Absorventes sintéticos para ácidos, bases, produtos tóxicos e substâncias desconhecidas.',
+    seoTitle: 'Absorvente Químico — Linha Verde | HCLEAN',
+    seoDescription:
+      'Absorvente químico para ácidos, bases, produtos tóxicos e substâncias desconhecidas. Em cordão, manta, rolo e travesseiro, com alta resistência química.',
     about: [
       'A Linha Verde reúne os absorventes sintéticos indicados para líquidos agressivos: ácidos, bases, produtos tóxicos e substâncias desconhecidas.',
       'O material não se desfaz ao entrar em contato com líquidos mais agressivos, o que a torna adequada também para limpeza de bancadas em laboratórios.',
@@ -461,6 +510,9 @@ export const products: Product[] = [
     name: 'Turfa Orgânica',
     category: 'absorventes',
     lead: 'Absorvente orgânico 100% natural e renovável, com alta taxa de absorção de hidrocarbonetos.',
+    seoTitle: 'Turfa Orgânica — Absorvente de Óleo Natural | HCLEAN',
+    seoDescription:
+      'Absorvente orgânico de turfa, 100% natural e renovável, com 98% de matéria orgânica e alta taxa de absorção de hidrocarbonetos. Fabricação nacional.',
     about: [
       'A turfa absorvente é um produto não tóxico e não abrasivo. Seu desempenho se deve à alta taxa de absorção e à capacidade não lixiviante, que permite às equipes de limpeza controlar contaminantes indesejáveis.',
       'Sua composição consiste em um composto orgânico de origem vegetal pura, com 98% de matéria orgânica.',
@@ -497,6 +549,9 @@ export const products: Product[] = [
     name: 'Kit SOPEP',
     category: 'kits-de-emergencia',
     lead: 'Kits dimensionados para contenção e absorção de vazamentos, conforme normas internacionais.',
+    seoTitle: 'Kit SOPEP para Embarcações | HCLEAN',
+    seoDescription:
+      'Kit SOPEP dimensionado para contenção e absorção de vazamentos a bordo, conforme o Shipboard Oil Pollution Emergency Plan. De 50 a 1.000 litros.',
     about: [
       'Os Kits SOPEP (Shipboard Oil Pollution Emergency Plan) são dimensionados especialmente para a contenção e absorção de vazamentos ou derramamentos de petróleo, seus derivados, produtos químicos e líquidos diversos.',
       'São indicados para uso em ambientes industriais, portuários, embarcações e áreas sensíveis, onde é necessário agir rapidamente para controlar e minimizar os impactos ambientais de incidentes com substâncias perigosas.',
@@ -528,6 +583,9 @@ export const products: Product[] = [
     name: 'Kit Primeiro Atendimento',
     category: 'kits-de-emergencia',
     lead: 'Kit compacto para resposta imediata, até que a equipe especializada assuma a operação.',
+    seoTitle: 'Kit de Primeiro Atendimento a Vazamentos | HCLEAN',
+    seoDescription:
+      'Kit de emergência compacto para resposta imediata a vazamentos, com barreiras, mantas, EPIs e sacos de descarte. Personalizável para fábricas e postos.',
     about: [
       'O Kit de Primeiro Atendimento é desenvolvido para oferecer uma resposta rápida e eficaz em situações de emergência envolvendo vazamentos ou derramamentos de líquidos perigosos, como petróleo e seus derivados, produtos químicos ou substâncias contaminantes.',
       'É especialmente indicado para as fases iniciais de um acidente ambiental ou industrial, permitindo a contenção imediata e a mitigação dos impactos até que uma equipe especializada assuma o controle da situação.',
@@ -559,6 +617,9 @@ export const products: Product[] = [
     name: 'Tanque Terrestre',
     category: 'armazenamento',
     lead: 'Tanque em lona de PVC vulcanizada para armazenamento temporário de hidrocarbonetos.',
+    seoTitle: 'Tanque Terrestre para Armazenamento de Óleo | HCLEAN',
+    seoDescription:
+      'Tanque terrestre em lona de PVC vulcanizada para armazenamento temporário de hidrocarbonetos. Modelo de 15.000 litros, 45 kg, para apoio à operação.',
     about: [
       'Tanque para armazenamento temporário de hidrocarbonetos, confeccionado em lona de PVC vulcanizada. Sua borda, com flutuadores, vai se modelando conforme a quantidade de produto colocado.',
       'É equipamento comumente utilizado na composição de PEIs (Planos de Emergência Individual).',
@@ -600,14 +661,81 @@ export const findProduct = (slug: string) => products.find((p) => p.slug === slu
 export const findCategory = (slug: string) => categories.find((c) => c.slug === slug);
 
 /** Até `limit` itens: primeiro os da mesma categoria, depois os demais. */
+/**
+ * Relacoes explicitas entre produtos, por complementaridade real de operacao.
+ *
+ * O calculo anterior era "mesma categoria primeiro, depois o resto na ORDEM DO
+ * ARRAY". Como barreiras vem primeiro no catalogo, todo produto sem irmaos de
+ * categoria puxava as duas barreiras — e o Kit SOPEP, o Kit Primeiro
+ * Atendimento e o Tanque Terrestre (os ultimos do array) nunca eram escolhidos
+ * por ninguem. Medido no HTML servido: Linha Branca recebia link de 14 paginas,
+ * Kit SOPEP de 3 e Tanque Terrestre de 2. "kit SOPEP" e um dos termos que o
+ * comprador busca, e era a pagina com menos ligacao interna do site.
+ *
+ * Aqui a relacao e declarada, e o motivo de cada par esta na operacao que o
+ * proprio site descreve: o kit contem barreira e manta; a barreira contem o
+ * produto na agua e o absorvente o recolhe; o tanque armazena o que foi
+ * recolhido.
+ */
+const RELACIONADOS: Record<string, string[]> = {
+  'barreira-de-contencao-seafence': [
+    'barreira-de-contencao-abfence',
+    'absorvente-oleo-linha-branca',
+    'tanque-terrestre-armazenamento',
+  ],
+  'barreira-de-contencao-abfence': [
+    'barreira-de-contencao-seafence',
+    'absorvente-oleo-linha-branca',
+    'kit-sopep',
+  ],
+  'absorvente-oleo-linha-branca': [
+    'absorvente-universal-linha-cinza',
+    'turfa-organica-absorvente',
+    'kit-sopep',
+  ],
+  'absorvente-universal-linha-cinza': [
+    'absorvente-oleo-linha-branca',
+    'absorvente-quimico-linha-verde',
+    'kit-primeiro-atendimento',
+  ],
+  'absorvente-quimico-linha-verde': [
+    'absorvente-universal-linha-cinza',
+    'absorvente-oleo-linha-branca',
+    'kit-primeiro-atendimento',
+  ],
+  'turfa-organica-absorvente': [
+    'absorvente-oleo-linha-branca',
+    'barreira-de-contencao-seafence',
+    'tanque-terrestre-armazenamento',
+  ],
+  'kit-sopep': [
+    'kit-primeiro-atendimento',
+    'absorvente-oleo-linha-branca',
+    'barreira-de-contencao-seafence',
+  ],
+  'kit-primeiro-atendimento': [
+    'kit-sopep',
+    'absorvente-universal-linha-cinza',
+    'absorvente-quimico-linha-verde',
+  ],
+  'tanque-terrestre-armazenamento': [
+    'barreira-de-contencao-seafence',
+    'absorvente-oleo-linha-branca',
+    'turfa-organica-absorvente',
+  ],
+};
+
 export const relatedProducts = (product: Product, limit = 3) => {
-  const sameLine = products.filter(
-    (p) => p.category === product.category && p.slug !== product.slug,
+  const escolhidos = (RELACIONADOS[product.slug] ?? [])
+    .map((slug) => products.find((p) => p.slug === slug))
+    .filter((p): p is Product => p !== undefined && p.slug !== product.slug);
+
+  /* Rede de seguranca: se um slug for renomeado e sair do mapa, a pagina
+     continua com tres cards em vez de ficar com a secao vazia. */
+  const resto = products.filter(
+    (p) => p.slug !== product.slug && !escolhidos.some((e) => e.slug === p.slug),
   );
-  const others = products.filter(
-    (p) => p.category !== product.category && p.slug !== product.slug,
-  );
-  return [...sameLine, ...others].slice(0, limit);
+  return [...escolhidos, ...resto].slice(0, limit);
 };
 
 /* ------------------------------------------------------------ institucional */

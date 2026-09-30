@@ -34,12 +34,14 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 
   return {
     title: formato.name,
-    description: formato.lead,
+    /* `lead` tem 71 a 84 caracteres e o Google reserva 140 a 160: a descricao
+       do resultado vinha metade escrita por nos e metade pincada da pagina. */
+    description: formato.seoDescription,
     alternates: { canonical: `/produtos/formato/${formato.slug}` },
     openGraph: {
       type: 'website',
       title: `${formato.name} | ${site.name}`,
-      description: formato.lead,
+      description: formato.seoDescription,
       url: `/produtos/formato/${formato.slug}`,
     },
   };
@@ -59,14 +61,53 @@ export default async function FormatoPage({ params }: Params) {
     formato.variants.every((v) => v.features.includes(f)),
   );
 
+  const url = `${site.url}/produtos/formato/${formato.slug}`;
+
+  /* Faltavam `image` e `offers`: sem os dois o bloco nao e elegivel a rich
+     result de produto. A imagem vem da primeira variante (a foto real da
+     peca) e o Offer declara moeda, disponibilidade e onde cotar, sem preco —
+     o produto e orcado por especificacao e quantidade. */
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: formato.name,
-    description: formato.lead,
+    description: `${formato.lead} ${formato.intro}`,
     category: 'Materiais Absorventes',
+    url,
+    image: formato.variants.map((v) => `${site.url}${v.image}`),
     brand: { '@type': 'Brand', name: site.name },
     manufacturer: { '@type': 'Organization', name: site.legalName },
+    offers: {
+      '@type': 'Offer',
+      url,
+      priceCurrency: 'BRL',
+      availability: 'https://schema.org/InStock',
+      itemCondition: 'https://schema.org/NewCondition',
+      priceSpecification: {
+        '@type': 'PriceSpecification',
+        priceCurrency: 'BRL',
+        valueAddedTaxIncluded: false,
+      },
+      areaServed: { '@type': 'Country', name: 'Brasil' },
+      seller: { '@type': 'Organization', name: site.legalName, url: site.url },
+    },
+    /* As linhas em que este formato existe: relaciona a pagina de formato as
+       paginas de linha, que e a relacao que a pagina de fato descreve. */
+    isRelatedTo: formato.variants.map((v) => ({
+      '@type': 'Product',
+      name: `${formato.name} — ${v.lineName}`,
+      url: `${site.url}/produtos/${v.lineSlug}`,
+    })),
+  };
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Início', item: site.url },
+      { '@type': 'ListItem', position: 2, name: 'Produtos', item: `${site.url}/produtos` },
+      { '@type': 'ListItem', position: 3, name: formato.name, item: url },
+    ],
   };
 
   return (
@@ -262,6 +303,10 @@ export default async function FormatoPage({ params }: Params) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
     </>
   );

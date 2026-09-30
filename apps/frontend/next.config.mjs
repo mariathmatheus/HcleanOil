@@ -18,13 +18,45 @@ const nextConfig = {
        antes:  111ms (html) + 51ms (css) + 1 ida e volta
        depois: 268ms (html)
 
-     Isso empata por volta de 150ms de RTT e fica NEGATIVO abaixo disso. E
-     o dado de campo desta home mostra TTFB de 0ms — o HTML ja vem da borda
-     da Cloudflare quase instantaneo, que e justamente o cenario de RTT
-     baixo onde inline PERDE. Pior: o custo cai em TODA navegacao, enquanto
-     o CSS externo e cacheado e so a primeira visita paga.
+     Isso empata por volta de 150ms de RTT e fica NEGATIVO abaixo disso.
+     Pior: o custo cai em TODA navegacao, enquanto o CSS externo e cacheado
+     e so a primeira visita paga.
 
-     Se um dia o HTML encolher ou as folhas crescerem, vale remedir. */
+     REMEDIDO (2026-09-30), agora com proxy que aplica latencia real ao
+     documento tambem — a 1,6 Mbps e 4x de CPU, mediana de 5 execucoes:
+
+       RTT     3 folhas (FCP/LCP)   inline (FCP/LCP)
+        40ms      892 / 892           880 / 1068
+       150ms     1072 / 1072          940 / 1080
+       300ms     1428 / 1428         1100 / 1116
+
+     Confirma o empate em ~150ms. Abaixo disso o inline piora o LCP: o HTML
+     maior atrasa a descoberta da imagem do hero, e o "element render delay"
+     sobe de 53ms para 82ms porque o parser tem 32 kB de CSS a mais para
+     processar antes de pintar.
+
+     E o RTT real desta producao nao chega perto de 150ms: o `connect` para
+     a borda da Cloudflare mede 16–27ms. O TTFB de 195–453ms que o PSI
+     mostra e tempo de PENSAR do servidor, nao ida e volta — o inline nao
+     recupera nada dele, so faz o HTML chegar 32 kB mais gordo depois da
+     mesma espera.
+
+     O ponto que faltava na conta antiga: NAO existem "tres idas e voltas
+     em serie". Medido contra a producao com Chrome de verdade, a borda
+     serve h2 (e anuncia h3), e as tres folhas partem em 76–77ms e terminam
+     em 123–124ms — uma conexao multiplexada, as tres em paralelo, 47ms no
+     total. Os "1060ms" do PSI sao a SOMA das duracoes por arquivo sob
+     simulacao, nao tempo de relogio.
+
+     Pela mesma razao, juntar as tres em uma folha nao paga: economiza 902
+     bytes de gzip, e medindo 13 execucoes a 150ms a versao unificada saiu
+     68ms MAIS LENTA que as tres separadas (1160 vs 1092) — ou seja, dentro
+     do ruido. O Lighthouse concorda: `render-blocking-insight` estima
+     economia de 300ms de FCP e ZERO de LCP, e o LCP daqui e a imagem do
+     hero, que ja vai com `fetchpriority=high` e descoberta no HTML.
+
+     Se um dia o HTML encolher, as folhas crescerem, ou a borda ficar
+     distante do publico (RTT > 150ms), vale remedir. */
   // O site é institucional e quase todo estático: gerar HTML no build deixa o
   // LCP no tempo de resposta do CDN, que é o que o Core Web Vitals mede.
   compress: true,
@@ -33,7 +65,7 @@ const nextConfig = {
        AVIF comprime melhor, mas o encode e uma ordem de grandeza mais lento, e
        o hero da home (a unica imagem `fill` a 100vw, origem 1920px) era a mais
        cara de todas: o LCP media o tempo de encode, nao o de download. */
-    formats: ['image/webp'],
+    formats: ['image/avif', 'image/webp'],
 
     /* Um ano. O default sao 4 horas, e a cada expiracao a primeira visita
        pagava o reencode de novo. A URL ja carrega o hash do arquivo, entao

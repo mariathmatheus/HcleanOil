@@ -201,3 +201,18 @@
 .specs td {
   color: var(--text-strong);
 }
+
+/* Link do card de formato para a pagina do formato. */
+.formatLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 16px;
+  font: var(--type-label);
+  color: var(--hc-green-700);
+  text-decoration: none;
+}
+
+.formatLink:hover {
+  text-decoration: underline;
+}

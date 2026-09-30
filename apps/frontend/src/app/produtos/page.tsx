@@ -13,15 +13,44 @@ import {
 } from '@/components/sections/Shared';
 import { ProductCard, FormatoCard } from '@/components/sections/ProductCard';
 import { Ornament, ornamentHost } from '@/components/sections/Ornament';
-import { categories, productsByCategory } from '@/data/site';
+import { categories, productsByCategory, products, site } from '@/data/site';
 import { formatos } from '@/data/formatos';
 import s from './produtos.module.css';
 
 export const metadata: Metadata = {
-  title: 'Produtos',
+  /* "Produtos | HCLEAN" tinha 17 caracteres e nenhum termo de busca: gastava o
+     espaco mais valioso do resultado com uma palavra que ninguem digita. O
+     titulo agora carrega os tres termos que o comprador procura. */
+  title: { absolute: 'Barreiras de Contenção, Absorventes e Kits SOPEP | HCLEAN' },
   description:
-    'Barreiras de contenção, três linhas de material absorvente, kits SOPEP e de primeiro atendimento e tanques para armazenamento temporário.',
+    'Fabricamos barreiras de contenção, absorventes de óleo nas linhas branca, cinza e verde, kits SOPEP e tanques para armazenamento temporário. Atuação nacional.',
   alternates: { canonical: '/produtos' },
+};
+
+/* A vitrine tinha trilha visual e nenhum dado estruturado. O BreadcrumbList
+   da ao Google o caminho para exibir no lugar da URL crua; o ItemList diz que
+   esta pagina e o indice do catalogo e quais sao os itens, o que ajuda a
+   descoberta das 9 paginas de produto. */
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Início', item: site.url },
+    { '@type': 'ListItem', position: 2, name: 'Produtos', item: `${site.url}/produtos` },
+  ],
+};
+
+const catalogSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: 'Catálogo HCLEAN',
+  numberOfItems: products.length,
+  itemListElement: products.map((p, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    name: p.name,
+    url: `${site.url}/produtos/${p.slug}`,
+  })),
 };
 
 export default function ProdutosPage() {
@@ -123,6 +152,14 @@ export default function ProdutosPage() {
           />
         </Container>
       </Section>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(catalogSchema) }}
+      />
     </>
   );
 }

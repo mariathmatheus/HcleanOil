@@ -1,12 +1,23 @@
 'use client';
 
-import { useEffect, useId, useRef, useState } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { QuoteButton } from '@/components/quote/QuoteButton';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { Icon } from '@/components/ui/Icon';
-import { nav } from '@/data/site';
 import s from './Header.module.css';
+
+/* A gaveta sai do bundle inicial.
+   Ela é a maior parte deste menu — `usePathname`, um `Link` por item, o
+   `QuoteButton` do rodapé e quatro efeitos (Esc, trava de rolagem, foco,
+   `inert` na faixa de cookies) — e nada disso é alcançável antes do primeiro
+   toque no hambúrguer. Sob demanda, esse peso deixa o caminho crítico.
+
+   `ssr: false` porque o painel nasce fechado: o HTML do servidor traria véu e
+   gaveta com `hidden`, ocupando bytes na página para marcação que ninguém vê
+   até tocar. O botão, que é o que precisa estar pintado, continua aqui. */
+const MenuMobilePainel = dynamic(
+  () => import('./MenuMobilePainel').then((m) => m.MenuMobilePainel),
+  { ssr: false },
+);
 
 /**
  * Largura a partir da qual o menu deixa de existir. Espelha o
@@ -25,19 +36,20 @@ const DESKTOP = '(min-width: 901px)';
  *
  * O componente inteiro some acima de 768px (ver `.disparador` no CSS), então
  * o desktop continua servido por `NavLinks` — nada do que está aqui o alcança.
+ *
+ * Aqui ficou só o botão e o estado de aberto/fechado. Tudo o que a gaveta
+ * precisa está em `MenuMobilePainel`, carregado no primeiro toque.
  */
 export function MenuMobile() {
   const [aberto, setAberto] = useState(false);
-  const pathname = usePathname();
+  /* Uma vez aberto, o módulo do painel já está na memória: continuar a
+     montá-lo preserva a animação de saída e evita um `import()` por toque. */
+  const [montado, setMontado] = useState(false);
   const painelId = `menu-mobile-${useId().replace(/:/g, '')}`;
   const disparador = useRef<HTMLButtonElement>(null);
-  const painel = useRef<HTMLDivElement>(null);
 
-  /* Navegação no App Router não remonta o layout: sem isto o painel ficaria
-     aberto por cima da página nova depois de clicar num link. */
-  useEffect(() => {
-    setAberto(false);
-  }, [pathname]);
+  const fechar = useCallback(() => setAberto(false), []);
+  const devolverFoco = useCallback(() => disparador.current?.focus(), []);
 
   /* Passando do breakpoint o CSS esconde painel, véu e hambúrguer, mas o
      estado continuaria aberto e a rolagem travada — uma página de desktop
@@ -53,60 +65,6 @@ export function MenuMobile() {
     return () => mq.removeEventListener('change', aoMudar);
   }, []);
 
-  /* Trava a rolagem de trás enquanto o painel cobre a tela — mesmo tratamento
-     que o pop-up de orçamento faz.
-
-     A limpeza devolve o valor vazio em vez do que havia antes: se por algum
-     caminho este efeito rodasse com a trava já aplicada, guardar e recolocar
-     o "hidden" deixaria a página presa para sempre. Nada mais no site escreve
-     nesse estilo em cima do cabeçalho, então limpar é sempre o certo. */
-  useEffect(() => {
-    if (!aberto) return;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [aberto]);
-
-  /* Esc fecha. O foco volta para o hambúrguer: quem abriu pelo teclado
-     precisa reencontrar o ponto de onde saiu. */
-  useEffect(() => {
-    if (!aberto) return;
-    const aoTeclar = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setAberto(false);
-        disparador.current?.focus();
-      }
-    };
-    document.addEventListener('keydown', aoTeclar);
-    return () => document.removeEventListener('keydown', aoTeclar);
-  }, [aberto]);
-
-  /* Ao abrir, o foco entra no painel para que o próximo Tab caia nos links, e
-     não no resto da página que ficou atrás do véu. */
-  useEffect(() => {
-    if (aberto) painel.current?.focus();
-  }, [aberto]);
-
-  /* A faixa de cookies fica embaixo do véu, mas continuaria no leitor de tela
-     — e ela também se anuncia como diálogo, então seriam dois diálogos
-     abertos ao mesmo tempo. `inert` a tira da árvore de acessibilidade e do
-     Tab enquanto o menu estiver aberto.
-
-     Alcançada pelo papel e pelo rótulo, não pela classe: o seletor semântico
-     não depende do hash do CSS Module de outro componente. */
-  useEffect(() => {
-    if (!aberto) return;
-    const faixa = document.querySelector<HTMLElement>(
-      '[role="dialog"][aria-label="Preferências de cookies"]',
-    );
-    if (!faixa) return;
-    faixa.inert = true;
-    return () => {
-      faixa.inert = false;
-    };
-  }, [aberto]);
-
   return (
     <>
       <button
@@ -116,7 +74,10 @@ export function MenuMobile() {
         aria-expanded={aberto}
         aria-controls={painelId}
         aria-label={aberto ? 'Fechar menu de navegação' : 'Abrir menu de navegação'}
-        onClick={() => setAberto((v) => !v)}
+        onClick={() => {
+          setMontado(true);
+          setAberto((v) => !v);
+        }}
       >
         {aberto ? (
           <Icon name="close" size={22} strokeWidth={2} />
@@ -136,47 +97,14 @@ export function MenuMobile() {
         )}
       </button>
 
-      {/* O véu fecha ao toque fora do painel — gesto que todo mundo já espera
-          de uma gaveta. */}
-      <div
-        className={`${s.veu} ${aberto ? s.veuAberto : ''}`}
-        hidden={!aberto}
-        onClick={() => setAberto(false)}
-      />
-
-      <div
-        ref={painel}
-        id={painelId}
-        className={`${s.painel} ${aberto ? s.painelAberto : ''}`}
-        hidden={!aberto}
-        tabIndex={-1}
-        aria-label="Navegação principal"
-      >
-        <nav className={s.painelNav}>
-          {nav.map((item) => {
-            const ativo =
-              item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`${s.painelLink} ${ativo ? s.painelLinkAtivo : ''}`}
-                aria-current={ativo ? 'page' : undefined}
-                onClick={() => setAberto(false)}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
-
-        {/* O CTA se repete aqui com o rótulo inteiro: na barra ele aparece
-            abreviado por falta de largura, e quem abriu o menu tem espaço
-            para ler o convite completo. */}
-        <QuoteButton size="lg" fullWidth>
-          Solicitar orçamento
-        </QuoteButton>
-      </div>
+      {montado ? (
+        <MenuMobilePainel
+          aberto={aberto}
+          painelId={painelId}
+          onFechar={fechar}
+          devolverFoco={devolverFoco}
+        />
+      ) : null}
     </>
   );
 }

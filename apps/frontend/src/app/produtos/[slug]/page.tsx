@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Container, Section, SectionHeading, Grid, Badge } from '@/components/ui/Layout';
 import { ButtonLink } from '@/components/ui/Button';
@@ -27,6 +28,7 @@ import {
   relatedProducts,
   site,
 } from '@/data/site';
+import { formatoSlugPorNome } from '@/data/formatos';
 import s from './produto.module.css';
 
 type Params = { params: Promise<{ slug: string }> };
@@ -41,16 +43,28 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const product = findProduct(slug);
   if (!product) return {};
 
+  /* `seoTitle` ja vem com o sufixo da marca; o `title` cru passa pelo
+     template do layout. Sem ele o titulo seria o nome de catalogo, que nao e
+     o termo buscado. */
+  const title = product.seoTitle ?? product.name;
+  const description = product.seoDescription ?? product.lead;
+
   return {
-    title: product.name,
-    description: product.lead,
+    title: product.seoTitle ? { absolute: product.seoTitle } : product.name,
+    description,
     alternates: { canonical: `/produtos/${product.slug}` },
     openGraph: {
       type: 'website',
-      title: `${product.name} | ${site.name}`,
-      description: product.lead,
+      title,
+      description,
       url: `/produtos/${product.slug}`,
-      images: [{ url: product.image }],
+      /* `images` sai daqui de proposito.
+         A foto de catalogo e quadrada (1920x1920) e o WhatsApp/Facebook cortam
+         para 1.91:1 — a da Linha Branca virava um retangulo branco sem produto
+         e sem marca. Existe `opengraph-image.tsx` nesta mesma rota, que gera o
+         cartao 1200x630 com nome e lead legiveis, mas declarar `images` aqui
+         sobrescrevia esse arquivo: o HTML servido apontava para o .webp cru.
+         Omitindo o campo, o Next volta a usar a rota gerada. */
     },
   };
 }
@@ -63,6 +77,14 @@ export default async function ProdutoPage({ params }: Params) {
   const category = findCategory(product.category);
   const related = relatedProducts(product);
 
+  const url = `${site.url}/produtos/${product.slug}`;
+
+  /* Sem `offers` o Google considera o Product incompleto e nao concorre a
+     rich result nenhum — era o caso aqui. Nao ha preco de tabela: tudo e
+     fabricado sob medida e cotado caso a caso. A forma honesta de declarar
+     isso e um Offer com a moeda e a disponibilidade, SEM `price`, mais
+     `availability: InStock` (fabricamos e atendemos) e a URL onde se pede a
+     cotacao. Inventar um preco aqui seria dado falso no resultado de busca. */
   const productSchema = {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -70,13 +92,42 @@ export default async function ProdutoPage({ params }: Params) {
     description: product.lead,
     category: category?.name,
     image: `${site.url}${product.image}`,
+    url,
     brand: { '@type': 'Brand', name: site.name },
     manufacturer: { '@type': 'Organization', name: site.legalName },
+    offers: {
+      '@type': 'Offer',
+      url,
+      priceCurrency: 'BRL',
+      availability: 'https://schema.org/InStock',
+      itemCondition: 'https://schema.org/NewCondition',
+      /* Cotacao sob consulta: preco definido por especificacao e quantidade. */
+      priceSpecification: {
+        '@type': 'PriceSpecification',
+        priceCurrency: 'BRL',
+        valueAddedTaxIncluded: false,
+      },
+      areaServed: { '@type': 'Country', name: 'Brasil' },
+      seller: { '@type': 'Organization', name: site.legalName, url: site.url },
+    },
     additionalProperty: product.specs.map((sp) => ({
       '@type': 'PropertyValue',
       name: sp.label,
       value: sp.value,
     })),
+  };
+
+  /* A trilha visual existia desde sempre; faltava o equivalente estruturado,
+     que e o que faz o Google trocar a URL crua pelo caminho
+     "Inicio > Produtos > Categoria" no resultado de busca. */
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Início', item: site.url },
+      { '@type': 'ListItem', position: 2, name: 'Produtos', item: `${site.url}/produtos` },
+      { '@type': 'ListItem', position: 3, name: product.name, item: url },
+    ],
   };
 
   return (
@@ -191,6 +242,18 @@ export default async function ProdutoPage({ params }: Params) {
                         <li key={x}>{x}</li>
                       ))}
                     </ul>
+                    {/* Liga o card a pagina daquele formato, que compara as
+                        tres linhas lado a lado. Sem este link as 6 paginas de
+                        formato so recebiam autoridade de /produtos. */}
+                    {formatoSlugPorNome(f.name) ? (
+                      <Link
+                        href={`/produtos/formato/${formatoSlugPorNome(f.name)}`}
+                        className={s.formatLink}
+                      >
+                        Comparar {f.name.toLowerCase()} nas três linhas
+                        <Icon name="arrow-right" size={15} strokeWidth={2.25} />
+                      </Link>
+                    ) : null}
                   </div>
                 </article>
               ))}
@@ -268,6 +331,10 @@ export default async function ProdutoPage({ params }: Params) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
     </>
   );

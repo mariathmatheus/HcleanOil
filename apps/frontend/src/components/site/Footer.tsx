@@ -4,17 +4,28 @@ import { ContactLink } from '@/components/analytics/ContactLink';
 import { Icon } from '@/components/ui/Icon';
 import { Logo } from '@/components/ui/Logo';
 import { QuoteLink } from '@/components/quote/QuoteLink';
-import { categories, site } from '@/data/site';
+import { site } from '@/data/site';
 import s from './Footer.module.css';
 
 import NerdResolveBadge from './NerdResolveBadge';
 /** Um item de coluna navega (`href`) ou abre o pop-up de orçamento (`quote`). */
 type FooterLink = { label: string } & ({ href: string } | { quote: true });
 
+/* Os tres termos que o comprador de fato busca, segundo a midia: "barreira de
+   contencao", "absorvente de oleo" e "kit SOPEP". A coluna apontava para
+   ancoras de /produtos (`/produtos#kits-de-emergencia`), que nao sao URLs
+   proprias: o Kit SOPEP e o Tanque Terrestre recebiam link de 3 e 2 paginas do
+   site, contra 14 da Linha Branca. Apontando para a pagina do produto, o link
+   do rodape passa a valer nas 18 paginas. */
 const COLUMNS: { title: string; links: FooterLink[] }[] = [
   {
     title: 'Soluções',
-    links: categories.map((c) => ({ href: `/produtos#${c.slug}`, label: c.name })),
+    links: [
+      { href: '/produtos/barreira-de-contencao-seafence', label: 'Barreiras de contenção' },
+      { href: '/produtos/absorvente-oleo-linha-branca', label: 'Absorventes de óleo' },
+      { href: '/produtos/kit-sopep', label: 'Kit SOPEP' },
+      { href: '/produtos/tanque-terrestre-armazenamento', label: 'Tanque terrestre' },
+    ],
   },
   {
     title: 'Empresa',
