@@ -1,5 +1,27 @@
-import 'dotenv/config';
+import { config as carregarEnv } from 'dotenv';
 import { z } from 'zod';
+
+/*
+ * Configuração em duas camadas.
+ *
+ * `.env` fica de fora do git porque guarda senha de SMTP e chaves de API, e o
+ * repositório é público. O efeito colateral era que toda configuração NÃO
+ * secreta — endereço do servidor de e-mail, para quem vai a cópia dos leads —
+ * também não viajava: um `git pull` no servidor trazia o código novo e deixava
+ * a configuração velha para trás, sem ninguém perceber até os leads pararem.
+ *
+ * Então o que não é segredo vive em `.env.producao`, versionado, e o `.env`
+ * guarda só o que não pode ser publicado.
+ *
+ * `.env.producao` vem primeiro e com `override`, de propósito: o `.env` de
+ * cada servidor já existia antes desta separação e carrega valores antigos
+ * dos mesmos campos. Se o `.env` vencesse, um `git pull` continuaria não
+ * corrigindo nada — que é exatamente o problema que esta separação existe
+ * para resolver. Quem precisa de valor diferente numa máquina define a
+ * variável no ambiente, que vence os dois.
+ */
+carregarEnv({ path: '.env.producao', override: true });
+carregarEnv();
 
 /**
  * Configuração do serviço. Validada na subida: melhor o processo não iniciar
@@ -49,11 +71,25 @@ const schema = z.object({
    * Fica oculta de propósito — o cliente que recebe a confirmação não vê
    * este endereço. Vazio ou ausente desliga a cópia.
    */
+  /* Aceita mais de um endereço, separados por vírgula: a equipe quer a cópia
+     na caixa do domínio e também numa conta de apoio, e antes só cabia um. */
   MAIL_BCC: z
     .string()
     .optional()
     .transform((v) => (v?.trim() ? v.trim() : undefined))
-    .pipe(z.string().email('MAIL_BCC precisa ser um e-mail válido').optional()),
+    .superRefine((v, ctx) => {
+      if (!v) return;
+      for (const parte of v.split(',')) {
+        const email = parte.trim();
+        if (!email) continue;
+        if (!z.string().email().safeParse(email).success) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `MAIL_BCC tem um e-mail inválido: ${email}`,
+          });
+        }
+      }
+    }),
 
   /** Envia confirmação para quem preencheu o formulário. */
   SEND_CONFIRMATION: z

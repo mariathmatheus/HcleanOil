@@ -20,6 +20,11 @@ apps/frontend/scripts/screenshots/
 .env
 .env*
 !.env.example
+# Configuração de produção que não é segredo (endereço do servidor de e-mail,
+# destinatários). Versionada de propósito: sem isso um `git pull` no servidor
+# trazia código novo e deixava configuração velha, e os leads paravam de
+# chegar sem aviso. Senha e chave de API continuam fora, no .env.
+!.env.producao
 *.pem
 *.key
 credentials.json

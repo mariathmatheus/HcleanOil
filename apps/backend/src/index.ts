@@ -37,7 +37,11 @@ app.use(
  * leads estão chegando na caixa comercial" — e é `leadsPendentes > 0` de forma
  * sustentada que merece alerta no monitoramento.
  */
-app.get('/health', (_req, res) => {
+/* Também sob `/api`: o túnel só encaminha `^/api/.*` para o backend, então
+   `/health` sozinho batia na página 404 do site. Sem um endereço alcançável de
+   fora, uma falha de envio de e-mail ficava invisível — o formulário respondia
+   sucesso, o lead ia para a fila e ninguém sabia que nada estava saindo. */
+app.get(['/health', '/api/health'], (_req, res) => {
   const smtp = estadoSmtp();
   res.json({
     ok: true,
