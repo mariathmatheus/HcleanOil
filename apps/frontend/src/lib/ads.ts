@@ -40,15 +40,15 @@ export const CONVERSOES = {
  * de absorventes, que é como as campanhas foram montadas.
  */
 const POR_PRODUTO: Record<string, string> = {
-  'containmentbarrier-seafence': 'hfzgCKOnu6AbEJiJ3o9B',
-  'containmentbarrier-abfence': 'hfzgCKOnu6AbEJiJ3o9B',
-  'kits-sopep': 'bwbPCKanu6AbEJiJ3o9B',
-  'kits-primeiro-atendimento': 'bwbPCKanu6AbEJiJ3o9B',
-  'oiltank': 'TCPfCKmnu6AbEJiJ3o9B',
-  'whiteline': 'rR2UCK-nu6AbEJiJ3o9B',
-  'greenline': 'PwHKCLKnu6AbEJiJ3o9B',
-  'grayline': 'HUyNCLWnu6AbEJiJ3o9B',
-  'absorbentmaterials-turfa': 'zVMUCKynu6AbEJiJ3o9B',
+  'barreira-de-contencao-seafence': 'hfzgCKOnu6AbEJiJ3o9B',
+  'barreira-de-contencao-abfence': 'hfzgCKOnu6AbEJiJ3o9B',
+  'kit-sopep': 'bwbPCKanu6AbEJiJ3o9B',
+  'kit-primeiro-atendimento': 'bwbPCKanu6AbEJiJ3o9B',
+  'tanque-terrestre-armazenamento': 'TCPfCKmnu6AbEJiJ3o9B',
+  'absorvente-oleo-linha-branca': 'rR2UCK-nu6AbEJiJ3o9B',
+  'absorvente-quimico-linha-verde': 'PwHKCLKnu6AbEJiJ3o9B',
+  'absorvente-universal-linha-cinza': 'HUyNCLWnu6AbEJiJ3o9B',
+  'turfa-organica-absorvente': 'zVMUCKynu6AbEJiJ3o9B',
 };
 
 /**

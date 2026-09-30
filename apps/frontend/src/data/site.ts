@@ -170,7 +170,7 @@ const SINTETICO_COMUM = [
 export const products: Product[] = [
   /* ---------------------------------------------- barreiras de contenção */
   {
-    slug: 'containmentbarrier-seafence',
+    slug: 'barreira-de-contencao-seafence',
     name: 'Barreira de Contenção SeaFence',
     category: 'barreiras-de-contencao',
     lead: 'Barreira flutuante em lona reforçada para contenção de derramamentos em operações de resposta.',
@@ -207,7 +207,7 @@ export const products: Product[] = [
     image: '/produtos/barreira-seafence.webp',
   },
   {
-    slug: 'containmentbarrier-abfence',
+    slug: 'barreira-de-contencao-abfence',
     name: 'Barreira de Contenção ABFence',
     category: 'barreiras-de-contencao',
     lead: 'Barreira flutuante rígida para longos períodos ou lançamento rápido.',
@@ -241,7 +241,7 @@ export const products: Product[] = [
 
   /* ------------------------------------------------- linhas de absorvente */
   {
-    slug: 'whiteline',
+    slug: 'absorvente-oleo-linha-branca',
     name: 'Linha Branca — Absorventes para hidrocarbonetos',
     category: 'absorventes',
     lead: 'Absorventes sintéticos para petróleo e derivados, que recolhem o produto sem absorver água.',
@@ -325,7 +325,7 @@ export const products: Product[] = [
     ],
   },
   {
-    slug: 'grayline',
+    slug: 'absorvente-universal-linha-cinza',
     name: 'Linha Cinza — Absorventes para líquidos em geral',
     category: 'absorventes',
     lead: 'Absorventes sintéticos de uso geral, para líquidos à base de água, detergentes, solventes e óleos.',
@@ -389,7 +389,7 @@ export const products: Product[] = [
     ],
   },
   {
-    slug: 'greenline',
+    slug: 'absorvente-quimico-linha-verde',
     name: 'Linha Verde — Absorventes para líquidos agressivos',
     category: 'absorventes',
     lead: 'Absorventes sintéticos para ácidos, bases, produtos tóxicos e substâncias desconhecidas.',
@@ -457,7 +457,7 @@ export const products: Product[] = [
     ],
   },
   {
-    slug: 'absorbentmaterials-turfa',
+    slug: 'turfa-organica-absorvente',
     name: 'Turfa Orgânica',
     category: 'absorventes',
     lead: 'Absorvente orgânico 100% natural e renovável, com alta taxa de absorção de hidrocarbonetos.',
@@ -493,7 +493,7 @@ export const products: Product[] = [
 
   /* ------------------------------------------------------------------ kits */
   {
-    slug: 'kits-sopep',
+    slug: 'kit-sopep',
     name: 'Kit SOPEP',
     category: 'kits-de-emergencia',
     lead: 'Kits dimensionados para contenção e absorção de vazamentos, conforme normas internacionais.',
@@ -524,7 +524,7 @@ export const products: Product[] = [
     image: '/produtos/kit-sopep.webp',
   },
   {
-    slug: 'kits-primeiro-atendimento',
+    slug: 'kit-primeiro-atendimento',
     name: 'Kit Primeiro Atendimento',
     category: 'kits-de-emergencia',
     lead: 'Kit compacto para resposta imediata, até que a equipe especializada assuma a operação.',
@@ -555,7 +555,7 @@ export const products: Product[] = [
 
   /* -------------------------------------------------------------- tanque */
   {
-    slug: 'oiltank',
+    slug: 'tanque-terrestre-armazenamento',
     name: 'Tanque Terrestre',
     category: 'armazenamento',
     lead: 'Tanque em lona de PVC vulcanizada para armazenamento temporário de hidrocarbonetos.',

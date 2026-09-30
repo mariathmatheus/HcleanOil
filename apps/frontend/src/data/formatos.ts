@@ -42,13 +42,13 @@ export type Formato = {
 
 /** As três linhas e para que cada uma serve. */
 const PARA_QUE: Record<string, string> = {
-  'whiteline': 'Petróleo e derivados (hidrocarbonetos)',
-  'grayline': 'Líquidos em geral — água, detergentes, solventes e óleos',
-  'greenline': 'Líquidos agressivos — ácidos, bases e produtos desconhecidos',
+  'absorvente-oleo-linha-branca': 'Petróleo e derivados (hidrocarbonetos)',
+  'absorvente-universal-linha-cinza': 'Líquidos em geral — água, detergentes, solventes e óleos',
+  'absorvente-quimico-linha-verde': 'Líquidos agressivos — ácidos, bases e produtos desconhecidos',
 };
 
 /** Ordem de exibição; espelha a ordem do catálogo. */
-const ORDEM_LINHAS = ['whiteline', 'grayline', 'greenline'];
+const ORDEM_LINHAS = ['absorvente-oleo-linha-branca', 'absorvente-universal-linha-cinza', 'absorvente-quimico-linha-verde'];
 
 /**
  * Metadados de cada formato. O texto técnico vem das variantes; aqui fica só

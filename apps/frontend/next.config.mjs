@@ -38,31 +38,15 @@ const nextConfig = {
          permanente para a home preserva esse tráfego. */
       { source: '/contato', destination: '/', permanent: true },
 
-      /* Os slugs passaram para inglês porque o rastreamento de mídia
-         identifica cada página pela URL conter a palavra (whiteline,
-         oiltank...), não por evento — redirect não resolveria, já que a URL
-         final é que precisa casar.
-
-         301 das URLs antigas: elas já estavam no ar e no sitemap, e é o 301
-         que transfere ao endereço novo a autoridade acumulada. */
-      { source: '/produtos/linha-branca', destination: '/produtos/whiteline', permanent: true },
-      { source: '/produtos/linha-cinza', destination: '/produtos/grayline', permanent: true },
-      { source: '/produtos/linha-verde', destination: '/produtos/greenline', permanent: true },
-      { source: '/produtos/turfa-organica', destination: '/produtos/absorbentmaterials-turfa', permanent: true },
-      { source: '/produtos/kit-sopep', destination: '/produtos/kits-sopep', permanent: true },
-      { source: '/produtos/kit-primeiro-atendimento', destination: '/produtos/kits-primeiro-atendimento', permanent: true },
-      { source: '/produtos/tanque-terrestre', destination: '/produtos/oiltank', permanent: true },
-      { source: '/produtos/barreira-de-contencao-seafence', destination: '/produtos/containmentbarrier-seafence', permanent: true },
-      { source: '/produtos/barreira-de-contencao-abfence', destination: '/produtos/containmentbarrier-abfence', permanent: true },
-
-      /* Atalhos curtos, para a mídia usar direto no anúncio. */
-      { source: '/whiteline', destination: '/produtos/whiteline', permanent: false },
-      { source: '/greenline', destination: '/produtos/greenline', permanent: false },
-      { source: '/grayline', destination: '/produtos/grayline', permanent: false },
-      { source: '/containmentbarrier', destination: '/produtos/containmentbarrier-seafence', permanent: false },
-      { source: '/absorbentmaterials', destination: '/produtos/absorbentmaterials-turfa', permanent: false },
-      { source: '/kits', destination: '/produtos/kits-sopep', permanent: false },
-      { source: '/oiltank', destination: '/produtos/oiltank', permanent: false },
+      /* As URLs de produto mudaram para carregar o termo que o comprador
+         busca: "absorvente para óleo" tem procura, "Linha Branca" não. O 301
+         transfere ao endereço novo a autoridade que as anteriores
+         acumularam — elas já estavam no ar e no sitemap. */
+      { source: '/produtos/linha-branca', destination: '/produtos/absorvente-oleo-linha-branca', permanent: true },
+      { source: '/produtos/linha-cinza', destination: '/produtos/absorvente-universal-linha-cinza', permanent: true },
+      { source: '/produtos/linha-verde', destination: '/produtos/absorvente-quimico-linha-verde', permanent: true },
+      { source: '/produtos/turfa-organica', destination: '/produtos/turfa-organica-absorvente', permanent: true },
+      { source: '/produtos/tanque-terrestre', destination: '/produtos/tanque-terrestre-armazenamento', permanent: true },
 
       /* www para o domínio canônico. As duas formas servindo o mesmo conteúdo
          dividiriam a autoridade entre dois endereços e o Google trataria como

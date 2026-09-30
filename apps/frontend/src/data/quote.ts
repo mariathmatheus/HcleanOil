@@ -139,39 +139,39 @@ const formatosAbsorvente = (prefix: string, comBarreiras: boolean): QuoteOption[
 
 export const quoteProducts: QuoteProduct[] = [
   {
-    slug: 'containmentbarrier-seafence',
+    slug: 'barreira-de-contencao-seafence',
     name: 'Barreira de Contenção SeaFence',
     options: [
       { id: 'seafence', label: 'Metragem desejada', fields: [metrosLineares('seafence-metros')] },
     ],
   },
   {
-    slug: 'containmentbarrier-abfence',
+    slug: 'barreira-de-contencao-abfence',
     name: 'Barreira de Contenção ABFence',
     options: [
       { id: 'abfence', label: 'Metragem desejada', fields: [metrosLineares('abfence-metros')] },
     ],
   },
   {
-    slug: 'whiteline',
+    slug: 'absorvente-oleo-linha-branca',
     name: 'Linha Branca — hidrocarbonetos',
     intro: 'Selecione os formatos e informe a quantidade de cada um.',
     options: formatosAbsorvente('branca', true),
   },
   {
-    slug: 'grayline',
+    slug: 'absorvente-universal-linha-cinza',
     name: 'Linha Cinza — líquidos em geral',
     intro: 'Selecione os formatos e informe a quantidade de cada um.',
     options: formatosAbsorvente('cinza', false),
   },
   {
-    slug: 'greenline',
+    slug: 'absorvente-quimico-linha-verde',
     name: 'Linha Verde — líquidos agressivos',
     intro: 'Selecione os formatos e informe a quantidade de cada um.',
     options: formatosAbsorvente('verde', false),
   },
   {
-    slug: 'absorbentmaterials-turfa',
+    slug: 'turfa-organica-absorvente',
     name: 'Turfa Orgânica',
     options: [
       {
@@ -187,7 +187,7 @@ export const quoteProducts: QuoteProduct[] = [
     ],
   },
   {
-    slug: 'kits-sopep',
+    slug: 'kit-sopep',
     name: 'Kit SOPEP',
     intro: 'Selecione as capacidades e informe a quantidade de cada uma.',
     options: [
@@ -198,7 +198,7 @@ export const quoteProducts: QuoteProduct[] = [
     ],
   },
   {
-    slug: 'kits-primeiro-atendimento',
+    slug: 'kit-primeiro-atendimento',
     name: 'Kit Primeiro Atendimento',
     options: [
       {
@@ -213,7 +213,7 @@ export const quoteProducts: QuoteProduct[] = [
     ],
   },
   {
-    slug: 'oiltank',
+    slug: 'tanque-terrestre-armazenamento',
     name: 'Tanque Terrestre',
     options: [
       {
