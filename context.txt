@@ -33,7 +33,15 @@ CORRIGIDO (com autorização do usuário):
 - MX: `hcleanoil.com.br` => `mail.hcleanoil.com.br`, prioridade 0.
 - `SMTP_HOST` voltou a ser `mail.hcleanoil.com.br` (o IP literal era
   remendo enquanto o DNS estava quebrado).
-Medido: conecta em 70-112 ms na 465. Antes: timeout.
+Medido depois da correção:
+- SAÍDA: conecta em 70-112 ms na 465. Antes: timeout de ~21 s.
+- ENTRADA: porta 25 responde com banner Exim. Estava quebrada também,
+  ou seja, quem escrevia para contato@hcleanoil.com.br não era entregue.
+- MX propagado no 8.8.8.8 e no 1.1.1.1.
+- SPF existe e autoriza 45.148.96.63 explicitamente. Ponto de atenção: o
+  SPF usa `+mx`, que autoriza o que o MX apontar — com o MX quebrado,
+  essa cláusula apontava para o túnel.
+- DMARC existe com p=none e rua para o Brevo.
 
 AINDA FALTA: `docker compose up -d --build` no servidor, porque o .env e
 o timeout do mailer só valem depois do rebuild.
@@ -127,3 +135,62 @@ proposta de zerar descendentes que teria matado os cards da home; e o
 E uma vez eu validei o alvo errado: conferi o sessionStorage das UTMs,
 que sempre esteve correto, em vez do que o container recebia no evento.
 Medir a coisa certa importa tanto quanto medir.
+
+---
+
+## Fechamento desta rodada (30/09)
+
+### Resolvido e enviado
+
+| Commit | O quê |
+|---|---|
+| 2321328 | UTMs viajam na troca de página |
+| 8dccc52 | Telefone com máscara + validação em português + saem os eventos de carrinho |
+| 3cb17ae | Lead gravado em disco antes de responder; /health mostra SMTP e fila |
+| fb6584d | Este arquivo |
+
+### DNS: cinco danos colaterais do túnel, todos corrigidos
+
+Quando a raiz virou o túnel, tudo que era CNAME para a raiz foi junto:
+
+1. `mail` → era CNAME p/ raiz → agora A 45.148.96.63, sem proxy
+2. MX → apontava p/ raiz → agora mail.hcleanoil.com.br
+3. `ftp` → estava no proxy, porta 21 dava timeout → agora DNS-only, 52 ms
+4. `_caldav._tcp` → alvo era a raiz → agora mail (agenda do cPanel)
+5. `_carddav._tcp` → idem (contatos do cPanel)
+
+Validado: saída SMTP 70 ms, entrada porta 25 com banner Exim, FTP com
+banner Pure-FTPd, site 200 e www redirecionando.
+
+### Autenticação de e-mail
+
+SPF cobre o servidor (ip4 explícito + `+mx`), DKIM da Brevo resolve,
+DMARC existe em p=none. **As notificações de lead NÃO estão indo para
+spam.**
+
+Dois pontos para uma janela combinada, não urgentes:
+- O `+a` do SPF hoje autoriza os IPs anycast compartilhados da
+  Cloudflare, porque a raiz virou o túnel. Higiene ruim; remover devolve
+  folga nos lookups (estão em 8 de 10).
+- Não há DKIM do próprio servidor cPanel, só o da Brevo. A chave precisa
+  ser gerada no painel (WHM → Email Deliverability), então não dá para
+  fazer daqui. Sem ele, e-mail reencaminhado perde a autenticação.
+
+### Pendências do usuário
+
+1. `cd /opt/hclean && git pull && docker compose up -d --build`
+   NADA desta rodada está em produção ainda — verificado no bundle.
+2. Gerar o DKIM no cPanel (item acima).
+3. Avisar contatos importantes: o e-mail de ENTRADA esteve quebrado e
+   quem escreveu para contato@hcleanoil.com.br não foi entregue.
+4. Decidir sobre `MAIL_BCC`, que hoje manda cópia oculta de todo lead
+   para uma caixa pessoal @outlook.com.
+
+### Para o Flavio
+
+- VisitorAPI responde 402 (plano vencido). Único item entre Práticas
+  recomendadas 96 e 100.
+- Duplicidade de page_view: dois collect na mesma propriedade, um
+  `page_view` e um `PageView` (nome do Meta). É do container.
+- Na página de produto sai `View_item_barreira`, nome customizado que
+  fragmenta os relatórios de e-commerce do GA4.
