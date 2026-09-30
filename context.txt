@@ -194,3 +194,77 @@ Dois pontos para uma janela combinada, não urgentes:
   `page_view` e um `PageView` (nome do Meta). É do container.
 - Na página de produto sai `View_item_barreira`, nome customizado que
   fragmenta os relatórios de e-commerce do GA4.
+
+---
+
+## Rodada de desempenho (30/09, fim do dia)
+
+O deploy rodou. Desempenho no celular chegou a 95 no PageSpeed do
+usuário. Tudo abaixo foi medido, não estimado.
+
+### Aplicado e no ar
+
+| O quê | Resultado medido |
+|---|---|
+| Cache de HTML na borda | TTFB 200 ms -> 60 ms, `cf-cache-status: HIT` |
+| Beacon da Cloudflare desligado | sumiu; era a cadeia crítica mais longa |
+| AVIF | hero mobile 14,5 kB -> 9,6 kB |
+| `sizes` corrigidos | home -19%, produto -20% na dobra inicial |
+| Preconnect | presente no HTML de produção |
+| Reflow forçado | 1 em 5/5 execuções -> 0 em 5/5 |
+| Dados estruturados | Offer + BreadcrumbList em produção |
+| Cartão do WhatsApp | PNG 1200x630 em vez da foto quadrada |
+
+### Investigado e DESCARTADO — não repetir sem motivo novo
+
+- **Hidratação do React.** 92,6% da thread principal não tem uma linha
+  nossa na pilha. Os dois maiores chunks (react-dom 228 kB, App Router
+  166 kB) ficaram byte a byte idênticos em TODAS as variantes testadas,
+  inclusive apagando três componentes cliente. É o custo do
+  `hydrateRoot` existir.
+- **CSS bloqueante.** Consolidação construída e medida: 0,0 ms de FCP e
+  −1,5 ms de LCP contra ruído de 43–76 ms. O "450 ms" do PageSpeed é
+  soma simulada; as três folhas carregam em paralelo em ~47 ms sobre
+  HTTP/2.
+  ATENÇÃO: meu diagnóstico da CAUSA estava errado. Não é o componente
+  cliente — `Header.module.css` é importado por componente cliente e
+  fica no chunk principal. O Turbopack separa por ser arquivo de módulo
+  CSS distinto, independente de quem importa.
+- **Polyfill legado.** Servido com `noModule`, nunca baixado por
+  navegador moderno. Removível por `turbopack.resolveAlias`, mas vale
+  514 bytes comprimidos. Não compensa.
+- **Inline de CSS.** Engorda o HTML de 22 para 53 kB e só compensa acima
+  de 150 ms de RTT. O RTT real da borda é 16–27 ms.
+
+### Tentado e REVERTIDO
+
+Regra de cache para `/_next/image`. Funcionou (424 ms -> 55 ms), mas
+quebrou a negociação de formato: navegador sem AVIF recebia AVIF,
+porque o cache guarda uma variante só e o plano gratuito PROÍBE o
+cabeçalho `Accept` na chave de cache. Removida, negociação conferida
+depois.
+
+Caminho seguro, se for retomar: pré-gerar as variantes no build para
+eliminar a rota dinâmica. É o maior ganho que resta do nosso lado — o
+otimizador responde `DYNAMIC` com TTFB oscilando 180–424 ms, e como o
+hero é o LCP, isso produz 22 pontos de diferença entre execuções.
+
+### O teto, com número
+
+- **Práticas recomendadas travado em 73.** Os 26,9 pontos perdidos são
+  TODOS do container: 19,2 dos cookies do Clarity, 3,8 do erro 402 da
+  VisitorAPI, 3,8 dos problemas de cookie no inspetor. Nenhuma mudança
+  nossa move isso.
+- **Desempenho: teto realista 85–88** sem tocar no container. Medido
+  bloqueando: container bloqueado dá 91, tudo bloqueado dá 89–95.
+- A VisitorAPI ocupa a rede por 576–802 ms em TODA visita para devolver
+  402.
+
+### Decisão pendente do usuário
+
+Tirar o `QuoteProvider` do topo da árvore vale 30 ms e 17,7 kB
+comprimidos — medido. Mas o `begin_checkout` é disparado num efeito que
+observa o estado React que o Provider carrega: abrir o modal sem esse
+estado significa que o evento não dispara. Para destravar, o evento
+teria que migrar para o manipulador de clique. É mudança no funil do
+Flavio, não decisão técnica nossa.
