@@ -8,6 +8,13 @@
   pointer-events: none;
 }
 
+/* Páginas que terminam numa seção branca (as de produto, com "Produtos
+   relacionados"). A onda assume a cor de quem vem antes dela; sem isto sobra
+   um degrau de #fff para #f7f7f7 desenhando um fio na largura toda. */
+body:has(main > section:last-of-type[class*='toneCard']) .wave {
+  background: var(--hc-white);
+}
+
 .wave svg {
   display: block;
   width: 100%;

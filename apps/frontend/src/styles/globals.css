@@ -109,12 +109,28 @@ textarea {
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {
     /* Alvos: cartões de produto, blocos de destaque e cartões em geral —
-       os padrões que se repetem em grade e ganham com a entrada escalonada. */
+       os padrões que se repetem em grade e ganham com a entrada escalonada.
+
+       Os seletores casam o FIM do nome da classe (`__feature`, não
+       `*='feature'`) porque cada alvo é um cartão inteiro, e só ele deve ter
+       uma timeline própria. Um substring solto também pegava os filhos
+       (`featureTitle`, `caseText`) e o bloco que envolve a grade (`cases`):
+       pai e filho animavam cada um os seus 22px, o deslocamento somava 44px e,
+       como as duas timelines resolvem em progressos diferentes, o conteúdo
+       deslizava dentro da moldura do cartão durante a rolagem.
+
+       O CSS Modules do Next nomeia como `arquivo-module__hash__classe`, então
+       ancorar no sufixo `__classe` casa o nome exato e sobrevive à troca do
+       hash — ao contrário de escrever o hash no seletor. A variante
+       `*='__case '` cobre o caso de a classe não ser a última do atributo. */
     .reveal,
     main article,
-    main [class*='feature'],
-    main [class*='case'],
-    main [class*='format'] {
+    main [class$='__feature'],
+    main [class*='__feature '],
+    main [class$='__case'],
+    main [class*='__case '],
+    main [class$='__format'],
+    main [class*='__format '] {
       animation: reveal-in linear both;
       animation-timeline: view();
       animation-range: entry 6% cover 24%;

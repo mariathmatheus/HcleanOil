@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import s from './Consent.module.css';
 
 /**
@@ -47,6 +47,41 @@ function aplicar(escolha: Escolha) {
 
 export function Consent() {
   const [visivel, setVisivel] = useState(false);
+  const faixaRef = useRef<HTMLDivElement>(null);
+
+  /* Publica a altura da faixa numa variável global para o botão do WhatsApp
+     subir acima dela. Os dois são `fixed` no mesmo canto inferior, e no
+     telefone a faixa empilha em coluna e cobre o botão por inteiro — um toque
+     mirando o WhatsApp acabava caindo em "Só os essenciais". Medir em vez de
+     fixar um valor porque a altura muda com a largura da tela e com o corpo
+     do texto. */
+  useEffect(() => {
+    const faixa = faixaRef.current;
+    const raiz = document.documentElement;
+    if (!visivel || !faixa) {
+      raiz.style.removeProperty('--consent-h');
+      raiz.style.removeProperty('--consent-lift');
+      return;
+    }
+
+    const medir = () => {
+      const altura = faixa.offsetHeight;
+      raiz.style.setProperty('--consent-h', `${altura}px`);
+      /* Já com a folga somada: quem consome usa `var(--consent-lift, 0px)`
+         direto no calc, e sem a faixa o valor some por inteiro em vez de
+         deixar uma folga órfã empurrando o botão sem motivo. */
+      raiz.style.setProperty('--consent-lift', `${altura + 12}px`);
+    };
+    medir();
+
+    const observador = new ResizeObserver(medir);
+    observador.observe(faixa);
+    return () => {
+      observador.disconnect();
+      raiz.style.removeProperty('--consent-h');
+      raiz.style.removeProperty('--consent-lift');
+    };
+  }, [visivel]);
 
   useEffect(() => {
     if (!MEDICAO_ATIVA) return;
@@ -80,7 +115,7 @@ export function Consent() {
   if (!visivel) return null;
 
   return (
-    <div className={s.faixa} role="dialog" aria-label="Preferências de cookies" aria-live="polite">
+    <div ref={faixaRef} className={s.faixa} role="dialog" aria-label="Preferências de cookies" aria-live="polite">
       <p className={s.texto}>
         Usamos cookies para entender como o site é usado e para mostrar nossos
         produtos a quem já demonstrou interesse. Você escolhe.

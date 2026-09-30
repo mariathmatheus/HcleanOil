@@ -155,9 +155,26 @@
   grid-template-columns: repeat(4, 1fr);
 }
 
+/* `.cols4` cai para duas colunas sem sobra: os grupos que usam essa grade têm
+   quatro ou oito itens, e ambos dividem por dois.
+
+   `.cols3` não divide. Todos os grupos desta grade têm três ou nove itens, e
+   em duas colunas o último card ficava sozinho ocupando meia linha — 430px em
+   branco ao lado dele a 900px, 492px a 1024px. Segurando as três colunas até
+   768px o grupo volta a fechar (3x1 e 3x3) com cards de 227px, largura que
+   ainda comporta o título em três linhas e o texto de apoio.
+
+   Abaixo de 768px as três colunas dariam cards de 184px, estreitos demais; a
+   linha órfã volta, mas ali ela custa menos que empilhar — nove produtos numa
+   coluna só rendem 6500px de rolagem contra 2400px em duas. */
 @media (max-width: 1024px) {
-  .cols3,
   .cols4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 767px) {
+  .cols3 {
     grid-template-columns: repeat(2, 1fr);
   }
 }

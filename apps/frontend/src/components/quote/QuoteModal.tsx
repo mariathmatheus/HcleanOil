@@ -102,6 +102,18 @@ export function QuoteModal({ open, onClose, productSlug }: Props) {
     setStatus('idle');
     setMessage('');
 
+    /* O pop-up fica montado e só alterna `open`, de modo que o DOM sobrevive
+       ao fechamento. Sem limpar aqui, reabrir trazia de volta o que a pessoa
+       havia digitado enquanto o pedido zerava — e, pior, o consentimento
+       continuava desmarcado numa tela que parecia nova. */
+    ref.current?.querySelector('form')?.reset();
+
+    /* Pelo mesmo motivo, o corpo rolável guardava a posição anterior: em tela
+       pequena o pop-up reabria no meio do formulário, com Nome e E-mail acima
+       da área visível e sem nenhuma pista de que existiam. */
+    const corpo = ref.current?.querySelector<HTMLElement>('[data-corpo]');
+    if (corpo) corpo.scrollTop = 0;
+
     /* Abertura do pop-up: é o topo do funil de orçamento, e separa quem
        demonstrou intenção de quem só passou pela página. */
     abrirOrcamento(
@@ -282,7 +294,7 @@ export function QuoteModal({ open, onClose, productSlug }: Props) {
             </button>
           </div>
 
-          <div className={s.body}>
+          <div className={s.body} data-corpo>
             {/* Isca para robôs: humano nunca vê, logo nunca preenche. */}
             <div className={s.hp} aria-hidden="true">
               <label htmlFor="q-empresa-site">Não preencha</label>

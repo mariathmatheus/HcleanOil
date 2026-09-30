@@ -82,12 +82,15 @@
 
 /* --------------------------------------------------------- wave divider */
 
-/* Onda entre duas faixas. Sem margem negativa e com display:block no SVG, para
-   não sobrar linha de fundo nem meio pixel entre a onda e a seção seguinte. */
+/* Onda entre duas faixas. O display:block no SVG tira o espaço de linha de
+   base, e a margem negativa de 1px cobre o arredondamento sub-pixel em DPR
+   fracionário (telas a 125%/150%/175%), onde sobrava um fio claro na emenda
+   com a seção seguinte. É a mesma margem que a onda do rodapé já usa. */
 .wave {
   display: block;
   width: 100%;
   height: 96px;
+  margin-bottom: -1px;
   line-height: 0;
   font-size: 0;
   pointer-events: none;

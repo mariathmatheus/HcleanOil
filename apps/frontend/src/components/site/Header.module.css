@@ -73,37 +73,198 @@
   flex: 0 0 auto;
 }
 
-/* No mobile a navegação vira uma faixa rolável abaixo da marca — evita um
-   menu hambúrguer, que exigiria JS de cliente só para quatro links. */
+/* Acima de 900px o menu do mobile inteiro sai da página. Os elementos ficam
+   no HTML — o hambúrguer é componente de cliente e não dá para montá-lo só
+   numa faixa de largura sem medir a janela no servidor —, mas nenhum deles
+   chega a existir visualmente, e o cabeçalho continua exatamente o de sempre. */
+.acoesMobile,
+.disparador,
+.veu,
+.painel {
+  display: none;
+}
+
+/* ---------------------------------------------------------------- mobile */
+
+/* A faixa rolável de links abaixo da marca empilhava três linhas e ocupava
+   quase 200px — a primeira tela inteira ia embora antes do hero. Os links
+   passam para um painel, e a barra volta a ser uma linha só. */
 @media (max-width: 900px) {
   .bar {
-    flex-wrap: wrap;
-    height: auto;
-    gap: 14px;
-    padding-block: 14px;
+    justify-content: space-between;
+    gap: 12px;
+    height: 64px;
   }
-  .nav {
-    order: 3;
-    width: 100%;
-    margin-inline: 0;
-    gap: 22px;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-  /* Alvo de toque de 44px, o mínimo recomendado — no desktop o link é menor
-     porque o mouse tem precisão que o dedo não tem. */
-  .link {
-    display: inline-flex;
-    align-items: center;
-    min-height: 44px;
-    padding-block: 0;
-  }
-  .nav::-webkit-scrollbar {
+
+  /* `NavLinks` e o CTA largo continuam no HTML para o desktop; no mobile quem
+     navega é o painel. */
+  .nav,
+  .actions {
     display: none;
   }
-  .actions {
-    margin-left: auto;
+
+  .acoesMobile {
+    display: flex;
+    align-items: center;
     gap: 8px;
+    flex: 0 0 auto;
+  }
+
+  /* Em 360px a marca, o CTA e o hambúrguer somados estouram a linha; o rótulo
+     curto é o que devolve a folga sem tirar o botão da barra — ele é a ação
+     comercial principal e não pode depender de abrir um menu. */
+  .ctaCompacto {
+    height: 40px;
+    padding-inline: 16px;
+  }
+
+  /* Irmão do painel: sem z-index próprio o hambúrguer — que vira o "✕" —
+     ficaria pintado por baixo da gaveta justamente quando é preciso. */
+  .disparador {
+    position: relative;
+    z-index: 72;
+  }
+
+  /* O CTA da barra sai de cena com o painel aberto: lá dentro ele reaparece
+     com o rótulo inteiro, e os dois juntos seriam o mesmo botão duas vezes.
+     O estado de abertura vive no componente de cliente do menu; `:has()` lê
+     esse estado do próprio painel e poupa passar a classe pelo <header>, que
+     é renderizado no servidor. */
+  .acoesMobile:has(.painelAberto) .ctaCompacto {
+    visibility: hidden;
+  }
+
+  .disparador {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    /* 44px é o alvo de toque mínimo recomendado. */
+    width: 44px;
+    height: 44px;
+    flex: 0 0 auto;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    background: var(--hc-white);
+    color: var(--hc-green-800);
+    cursor: pointer;
+    transition: var(--transition-control);
+  }
+
+  .disparador:hover {
+    background: var(--hc-green-050);
+    border-color: var(--hc-green-100);
+  }
+
+  /* Anel de foco próprio: o outline global fica escondido atrás da borda do
+     cabeçalho quando o botão encosta no limite da faixa. */
+  .disparador:focus-visible {
+    outline: none;
+    border-color: var(--hc-green-300);
+    box-shadow: var(--focus-ring);
+  }
+
+  /* Véu e painel acima do WhatsApp e da faixa de consentimento (z-index 40 e
+     60): enquanto o menu está aberto nada de flutuante pode ficar por cima
+     dele. Continuam abaixo do pop-up de orçamento, que é <dialog> nativo e
+     vive na camada superior do navegador.
+
+     A barra sobe acima dos dois: o hambúrguer vira o "✕" e precisa continuar
+     clicável — senão o único jeito de fechar seria o Esc ou o véu.
+
+     O painel nasce dentro do grupo de ações, então o empilhamento dele se
+     resolve ali dentro: subir o <header> tira o painel de baixo do WhatsApp e
+     da faixa de cookies, e o botão — irmão do painel — sobe por conta própria
+     para continuar visível e clicável por cima da gaveta. */
+  .header {
+    z-index: 75;
+  }
+
+  /* `display: flex`/`block` numa classe vence o `display: none` que o
+     navegador dá ao atributo `hidden` — sem isto o painel apareceria fechado. */
+  .veu[hidden],
+  .painel[hidden] {
+    display: none;
+  }
+
+  /* Véu e painel começam onde a barra termina: a faixa branca continua
+     inteira, com a marca legível e o "✕" no lugar de onde o dedo saiu. */
+  .veu {
+    display: block;
+    position: fixed;
+    inset: 64px 0 0;
+    z-index: 70;
+    background: var(--overlay-scrim);
+  }
+
+  .painel {
+    position: fixed;
+    top: 64px;
+    right: 0;
+    bottom: 0;
+    z-index: 71;
+    width: min(320px, 86vw);
+
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px 20px 24px;
+
+    background: var(--hc-white);
+    border-left: 1px solid var(--border-subtle);
+    box-shadow: var(--shadow-lg);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .painel:focus-visible {
+    outline: none;
+  }
+
+  .painelNav {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 12px;
+  }
+
+  .painelLink {
+    display: flex;
+    align-items: center;
+    min-height: 52px;
+    padding-inline: 4px;
+    border-bottom: 1px solid var(--border-subtle);
+    font: var(--fw-semibold) var(--fs-body) / 1 var(--font-display);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-body);
+  }
+
+  /* A rota atual ganha uma barra verde à esquerda em vez do sublinhado do
+     desktop: na vertical a linha lateral é o que marca o item da lista. */
+  .painelLinkAtivo {
+    color: var(--hc-green-700);
+    box-shadow: inset 3px 0 0 var(--hc-green-300);
+    padding-inline-start: 14px;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .veuAberto {
+      animation: veu-entra var(--dur-base) var(--ease-out);
+    }
+    .painelAberto {
+      animation: painel-entra var(--dur-base) var(--ease-out);
+    }
+  }
+}
+
+@keyframes veu-entra {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes painel-entra {
+  from {
+    transform: translateX(100%);
   }
 }
 

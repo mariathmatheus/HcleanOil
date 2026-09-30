@@ -3,7 +3,14 @@
 .botao {
   position: fixed;
   right: 20px;
-  bottom: 20px;
+  /* Sobe acima da faixa de consentimento enquanto ela estiver de pé, em
+     QUALQUER largura. A faixa tem `max-width: 940px` centrada, então ela
+     alcança o canto do botão até cerca de 1060px — amarrar o empurrão a um
+     breakpoint de telefone deixava a faixa cobrindo o botão entre 721px e
+     1024px, onde o toque mirando o WhatsApp acabava caindo nos botões da
+     própria faixa. Condicionar à variável e não à largura: `--consent-lift`
+     só existe enquanto a faixa está visível, e some quando ela é respondida. */
+  bottom: calc(20px + var(--consent-lift, 0px));
   /* Abaixo do pop-up de orçamento e da faixa de consentimento, acima do
      conteúdo: o botão não pode cobrir uma decisão que o visitante está
      tomando. */
@@ -44,13 +51,15 @@
   }
 }
 
-/* No telefone a faixa de consentimento ocupa a base da tela enquanto não é
-   respondida; o botão sobe um pouco para não ficar embaixo dela. */
+/* No telefone o botão encolhe e encosta mais na borda. O empurrão da faixa de
+   consentimento continua vindo da regra base, só muda o repouso de 20 para
+   16px. A transição em `bottom` acompanha a faixa quando ela é respondida. */
 @media (max-width: 720px) {
   .botao {
     right: 16px;
-    bottom: 16px;
+    bottom: calc(16px + var(--consent-lift, 0px));
     width: 52px;
     height: 52px;
+    transition: transform 140ms ease, box-shadow 140ms ease, bottom 180ms ease;
   }
 }
