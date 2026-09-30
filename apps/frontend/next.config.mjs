@@ -5,6 +5,26 @@ const nextConfig = {
   /* Empacota o servidor com só as dependências que ele usa de fato. É o que
      permite a imagem Docker rodar sem node_modules e sem o código-fonte. */
   output: 'standalone',
+
+  /* NAO ligar `experimental.inlineCss` aqui — medido e rejeitado.
+
+     A ideia era tirar da corrente as tres folhas que o PageSpeed aponta
+     (fontes+app, tokens, modulo da rota, ~150ms de bloqueio). Ligando a
+     opcao os tres <link> realmente somem: 3 folhas bloqueantes viram 0.
+
+     So que o HTML da home sai de 22 kB para 53 kB DEPOIS do gzip — mais
+     31 kB, ou ~157ms a 1,6 Mbps. Refazendo a conta com esses numeros:
+
+       antes:  111ms (html) + 51ms (css) + 1 ida e volta
+       depois: 268ms (html)
+
+     Isso empata por volta de 150ms de RTT e fica NEGATIVO abaixo disso. E
+     o dado de campo desta home mostra TTFB de 0ms — o HTML ja vem da borda
+     da Cloudflare quase instantaneo, que e justamente o cenario de RTT
+     baixo onde inline PERDE. Pior: o custo cai em TODA navegacao, enquanto
+     o CSS externo e cacheado e so a primeira visita paga.
+
+     Se um dia o HTML encolher ou as folhas crescerem, vale remedir. */
   // O site é institucional e quase todo estático: gerar HTML no build deixa o
   // LCP no tempo de resposta do CDN, que é o que o Core Web Vitals mede.
   compress: true,
@@ -29,10 +49,15 @@ const nextConfig = {
     deviceSizes: [640, 750, 828, 1080, 1200, 1440, 1920],
     imageSizes: [256, 384],
 
-    /* Qualidades aceitas pelo otimizador. Sem declarar, o Next so permite 75
-       e ignora em silencio qualquer `quality` diferente no componente — foi o
-       que acontecia com o hero, que pedia 68 e recebia 75. */
-    qualities: [68, 75],
+    /* Qualidades aceitas pelo otimizador. Sem declarar, o Next só permite 75
+       e ignora em silêncio qualquer `quality` diferente no componente — foi o
+       que acontecia com o hero, que pedia 68 e recebia 75.
+
+       O 55 é do recorte retrato do hero no telefone: ele fica sob um scrim de
+       85 a 90% de opacidade, e medindo o composto final contra uma referência
+       quase sem perda a diferença máxima ficou em 1,9 de 255 — abaixo do
+       limiar visível, e menor que a do próprio 68 no arquivo paisagem. */
+    qualities: [55, 68, 75],
   },
   async redirects() {
     return [

@@ -62,4 +62,19 @@
     height: 52px;
     transition: transform 140ms ease, box-shadow 140ms ease, bottom 180ms ease;
   }
+
+  /* Enquanto a faixa de consentimento está de pé, o botão sai de cena no
+     telefone. Subir acima dela resolvia a sobreposição com a faixa, mas
+     jogava o botão em cima dos números do hero, cobrindo o terceiro deles.
+     E não há o que perder: a faixa é a decisão que a pessoa precisa tomar
+     antes de qualquer outra, e o botão volta assim que ela responde.
+
+     Quem liga e desliga é o atributo que o próprio componente marca, e não
+     um seletor que precise enxergar a faixa: entre módulos de CSS o alcance
+     é frágil, e um atributo no próprio elemento sempre vence. */
+  .botao[data-recolhido='true'] {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
 }

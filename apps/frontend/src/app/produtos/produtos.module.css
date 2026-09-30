@@ -46,3 +46,24 @@
   font: var(--type-body);
   color: var(--text-body);
 }
+
+/* Mesmo eixo central do resto do site no telefone: o título da categoria é um
+   cabeçalho, e a introdução é texto corrido — ver Layout.module.css para o
+   porquê da divisão. */
+@media (max-width: 640px) {
+  .categoryHead {
+    align-items: center;
+    text-align: center;
+  }
+
+  .categoryIntro {
+    text-align: left;
+    align-self: stretch;
+  }
+
+  /* Os atalhos de categoria são pílulas curtas: centralizados fecham a última
+     linha no meio em vez de deixar uma sobra à direita. */
+  .jump {
+    justify-content: center;
+  }
+}

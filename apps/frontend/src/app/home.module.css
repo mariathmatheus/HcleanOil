@@ -195,6 +195,22 @@
   margin-bottom: 40px;
 }
 
+/* No telefone a linha vira duas: cabeçalho em cima, botão embaixo. Sem isto o
+   botão herdava o `flex-start` da quebra e ficava encostado na borda esquerda
+   logo abaixo de um título já centralizado — foi o caso exato que o cliente
+   apontou em "Produtos / Soluções prontas para a operação / Ver produtos". */
+@media (max-width: 640px) {
+  .rowHead {
+    align-items: center;
+  }
+
+  /* Os selos de destaque também ganham eixo central, senão a última linha da
+     lista fica pendurada à esquerda sob um texto centralizado. */
+  .highlights {
+    justify-content: center;
+  }
+}
+
 /* ------------------------------------------------------------------ casos */
 
 .case {

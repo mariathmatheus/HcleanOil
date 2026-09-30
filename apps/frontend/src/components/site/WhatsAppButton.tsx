@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { site } from '@/data/site';
 import { contatoDireto } from '@/lib/analytics';
 import s from './WhatsAppButton.module.css';
@@ -16,9 +17,30 @@ import s from './WhatsAppButton.module.css';
  * não desaparecer do relatório como se fosse abandono.
  */
 export function WhatsAppButton() {
+  /* Recolhe enquanto a faixa de consentimento está de pé. No telefone os dois
+     disputam o mesmo canto: subir o botão acima da faixa o jogava em cima dos
+     números do hero, cobrindo o terceiro deles. A faixa é a decisão que vem
+     primeiro de qualquer forma, e o botão reaparece assim que ela é
+     respondida. */
+  const [recolhido, setRecolhido] = useState(false);
+
+  useEffect(() => {
+    const raiz = document.documentElement;
+    const olhar = () =>
+      setRecolhido(Boolean(raiz.style.getPropertyValue('--consent-lift')));
+
+    olhar();
+    /* A faixa publica a variável no <html> ao aparecer e a remove ao ser
+       respondida, então basta observar o atributo de estilo da raiz. */
+    const observador = new MutationObserver(olhar);
+    observador.observe(raiz, { attributes: true, attributeFilter: ['style'] });
+    return () => observador.disconnect();
+  }, []);
+
   return (
     <a
       className={s.botao}
+      data-recolhido={recolhido ? 'true' : undefined}
       href={site.contact.whatsapp}
       target="_blank"
       rel="noopener noreferrer"

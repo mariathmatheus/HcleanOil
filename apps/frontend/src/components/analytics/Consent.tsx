@@ -115,7 +115,7 @@ export function Consent() {
   if (!visivel) return null;
 
   return (
-    <div ref={faixaRef} className={s.faixa} role="dialog" aria-label="Preferências de cookies" aria-live="polite">
+    <div id="consent-faixa" ref={faixaRef} className={s.faixa} role="dialog" aria-label="Preferências de cookies" aria-live="polite">
       <p className={s.texto}>
         Usamos cookies para entender como o site é usado e para mostrar nossos
         produtos a quem já demonstrou interesse. Você escolhe.

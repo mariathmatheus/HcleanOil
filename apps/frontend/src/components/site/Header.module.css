@@ -90,9 +90,11 @@
    quase 200px — a primeira tela inteira ia embora antes do hero. Os links
    passam para um painel, e a barra volta a ser uma linha só. */
 @media (max-width: 900px) {
+  /* O gap acompanha a largura em vez de ser fixo: a 360px os 12px eram parte
+     do que empurrava as ações para fora da calha (ver `.acoesMobile`). */
   .bar {
     justify-content: space-between;
-    gap: 12px;
+    gap: clamp(8px, 3vw, 12px);
     height: 64px;
   }
 
@@ -103,19 +105,47 @@
     display: none;
   }
 
+  /* A marca não encolhe — o SVG da logo tem largura própria e espremê-la só
+     cortaria a palavra. Então quem cede é este grupo: `0 1 auto` com
+     `min-width: 0` deixa o flex tirar daqui a largura que faltar, em vez de
+     empurrar o conjunto para fora da calha.
+
+     Sem isso, a 360px a soma dava 325.4px numa caixa de 320px e o hambúrguer
+     saía 5.4px além do container: encostava na borda da tela sem calha
+     nenhuma, enquanto a logo mantinha os 20px do lado esquerdo. Abaixo de
+     346px a conta chegava a abrir barra de rolagem horizontal. */
   .acoesMobile {
     display: flex;
     align-items: center;
     gap: 8px;
-    flex: 0 0 auto;
+    flex: 0 1 auto;
+    min-width: 0;
   }
 
   /* Em 360px a marca, o CTA e o hambúrguer somados estouram a linha; o rótulo
      curto é o que devolve a folga sem tirar o botão da barra — ele é a ação
-     comercial principal e não pode depender de abrir um menu. */
+     comercial principal e não pode depender de abrir um menu.
+
+     O que sobra de aperto sai daqui, não do hambúrguer: o botão de menu tem
+     44px fixos, que é o alvo de toque mínimo, então o CTA é o único do grupo
+     que pode ceder. O padding varia com a largura em vez de mudar de degrau
+     num breakpoint, senão girar o aparelho faria o botão saltar de tamanho. */
   .ctaCompacto {
     height: 40px;
-    padding-inline: 16px;
+    padding-inline: clamp(10px, 2.6vw, 16px);
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+
+  /* Abaixo de 350px a palavra "Orçamento" não cabe inteira ao lado da marca e
+     do hambúrguer: sobram 64px para uma palavra que precisa de 75, e ela saía
+     cortada no meio ("Orçament…"). O botão sai da barra, e o orçamento
+     continua a um toque de distância — dentro da gaveta, onde o mesmo CTA
+     aparece com o rótulo completo. */
+  @media (max-width: 349px) {
+    .ctaCompacto {
+      display: none;
+    }
   }
 
   /* Irmão do painel: sem z-index próprio o hambúrguer — que vira o "✕" —

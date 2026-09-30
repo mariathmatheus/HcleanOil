@@ -89,6 +89,43 @@
   color: var(--text-inverse-muted);
 }
 
+/*
+  No telefone o cabeçalho de seção passa a ser centralizado — em TODAS as
+  páginas, porque o componente é o mesmo em todas.
+
+  O motivo é de composição, não de gosto. A escala de título cai para 24px no
+  mobile mas o texto continua o mesmo, então um `h2` de seis palavras quebra em
+  duas ou três linhas e sobra uma margem direita irregular de até 40% da tela.
+  Com tudo encostado à esquerda a faixa inteira pesa para um lado e o olho não
+  encontra eixo — foi o que o cliente descreveu como "grudado no canto".
+  Centralizado, as linhas desiguais se equilibram em torno do mesmo eixo e a
+  seção ganha um centro de gravidade.
+
+  A descrição é a exceção, e é deliberada: ela é o único texto corrido do bloco
+  e passa de quatro linhas com frequência. Texto corrido centralizado obriga o
+  leitor a reencontrar a margem esquerda a cada linha, e a medição em tela
+  mostrou parágrafos de seis linhas virando um losango ilegível. Título e
+  sobretítulo centralizam; o parágrafo mantém a margem firme.
+
+  640px e não 768px: é onde a grade já caiu para uma coluna só, ou seja onde o
+  cabeçalho realmente ocupa a largura inteira.
+*/
+@media (max-width: 640px) {
+  .heading {
+    align-items: center;
+    text-align: center;
+    margin-inline: auto;
+  }
+
+  .description {
+    text-align: left;
+    /* `align-items: center` no pai encolhe o filho ao conteúdo; sem esticar,
+       a caixa do parágrafo ficaria menor que a coluna e a margem esquerda
+       sairia torta em relação ao resto da página. */
+    align-self: stretch;
+  }
+}
+
 /* ------------------------------------------------------------------- card */
 
 .card {
@@ -127,6 +164,15 @@
   white-space: nowrap;
 }
 
+/* O selo traz `align-self: flex-start` para não esticar na coluna flex, e é
+   justamente isso que o prenderia à borda enquanto o título ao lado já está
+   centralizado no telefone. `center` mantém o encolhimento e só troca o eixo. */
+@media (max-width: 640px) {
+  .badge {
+    align-self: center;
+  }
+}
+
 .badgeAccent {
   background: var(--hc-green-050);
   border-color: var(--hc-green-100);
@@ -155,27 +201,30 @@
   grid-template-columns: repeat(4, 1fr);
 }
 
-/* `.cols4` cai para duas colunas sem sobra: os grupos que usam essa grade têm
-   quatro ou oito itens, e ambos dividem por dois.
+/* Entre 768px e 1024px a escolha do número de colunas depende de quantos cards
+   o grupo tem, não só da largura: duas colunas deixavam qualquer grupo ímpar
+   com o último card sozinho em meia linha — 430px em branco ao lado dele a
+   900px, 492px a 1024px, nos três e nos nove cards.
 
-   `.cols3` não divide. Todos os grupos desta grade têm três ou nove itens, e
-   em duas colunas o último card ficava sozinho ocupando meia linha — 430px em
-   branco ao lado dele a 900px, 492px a 1024px. Segurando as três colunas até
-   768px o grupo volta a fechar (3x1 e 3x3) com cards de 227px, largura que
-   ainda comporta o título em três linhas e o texto de apoio.
+   `:has(> :nth-child(3n):last-child)` é verdadeiro só quando a contagem é
+   múltipla de três, então os grupos de três, seis e nove seguram as três
+   colunas e fecham a última linha. Os de quatro continuam em duas, que é onde
+   eles fecham — passá-los para três só trocaria de órfão.
 
-   Abaixo de 768px as três colunas dariam cards de 184px, estreitos demais; a
-   linha órfã volta, mas ali ela custa menos que empilhar — nove produtos numa
-   coluna só rendem 6500px de rolagem contra 2400px em duas. */
+   Abaixo de 768px três colunas dariam cards de 184px, estreitos demais para o
+   título e o texto de apoio. A linha órfã volta, mas ali custa menos que
+   empilhar: nove produtos numa coluna só rendem 6500px de rolagem contra
+   2400px em duas. */
 @media (max-width: 1024px) {
+  .cols3,
   .cols4 {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-@media (max-width: 767px) {
-  .cols3 {
-    grid-template-columns: repeat(2, 1fr);
+@media (min-width: 768px) and (max-width: 1024px) {
+  .cols3:has(> :nth-child(3n):last-child) {
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 

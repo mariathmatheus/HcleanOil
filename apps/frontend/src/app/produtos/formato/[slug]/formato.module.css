@@ -1,12 +1,32 @@
 /* ------------------------------------------------------------- variantes */
 
 /* Uma coluna por linha de absorvente, lado a lado. Com só uma variante, o
-   card não estica para a largura toda: a leitura fica melhor contida. */
+   card não estica para a largura toda: a leitura fica melhor contida.
+
+   Três colunas fixas em vez de `auto-fit`: os formatos com mais de uma linha
+   têm três, e o `auto-fit` caía para duas entre 641px e 1023px — a terceira
+   linha ficava sozinha com meia faixa vazia ao lado (430px a 900px). O caso
+   de uma variante só continua com `.variantsSingle`, que vem depois e vence
+   em qualquer largura. */
 .variants {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 24px;
   margin-top: 44px;
+}
+
+/* Abaixo de 768px três colunas dariam cards de 184px — estreitos demais para
+   a foto e a tabela de especificação. Aí duas colunas, como no resto do site. */
+@media (max-width: 767px) {
+  .variants {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .variants {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .variantsSingle {
@@ -134,11 +154,34 @@
 
 /* ------------------------------------------------------- outros formatos */
 
+/* São sempre cinco formatos, e cinco só fecha em uma ou em cinco colunas. O
+   `auto-fit` escolhia a contagem pela largura e passava pelas duas piores: com
+   quatro colunas, de 1024px a 1279px, o quinto card ficava sozinho e sobravam
+   732px em branco ao lado — o maior buraco do site; com duas, de 641px a
+   767px, sobravam 338px.
+
+   A escada explícita pula as duas. Em três colunas resta o vão de um card na
+   última linha, que se lê como fim de lista e não como falha, e é o mais perto
+   de cheio que cinco cards chegam nessas larguras. */
 .others {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
   margin-top: 40px;
+}
+
+@media (max-width: 767px) {
+  .others {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* A partir de 1280px os cinco cabem lado a lado com 230px cada — a linha
+   única que o desktop já mostrava antes. */
+@media (min-width: 1280px) {
+  .others {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
 }
 
 .other {

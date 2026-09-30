@@ -156,3 +156,16 @@
     transform: none;
   }
 }
+
+/* Em telas muito estreitas o botão grande com 32px de folga de cada lado não
+   cabe: "Falar com um especialista" estourava 17px além da viewport a 320px.
+   Encolhe a folga e deixa o rótulo quebrar em duas linhas em vez de vazar. */
+@media (max-width: 360px) {
+  .lg {
+    height: auto;
+    min-height: 54px;
+    padding: 12px 18px;
+    text-align: center;
+    line-height: 1.25;
+  }
+}

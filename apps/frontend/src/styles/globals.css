@@ -123,7 +123,6 @@ textarea {
        ancorar no sufixo `__classe` casa o nome exato e sobrevive à troca do
        hash — ao contrário de escrever o hash no seletor. A variante
        `*='__case '` cobre o caso de a classe não ser a última do atributo. */
-    .reveal,
     main article,
     main [class$='__feature'],
     main [class*='__feature '],

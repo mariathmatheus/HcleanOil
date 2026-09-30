@@ -80,6 +80,69 @@
   }
 }
 
+/*
+  Mesma regra do cabeçalho de seção (ver Layout.module.css), aplicada ao hero
+  das páginas internas: no telefone o título ganha eixo central e o texto
+  corrido mantém a margem esquerda.
+
+  Aqui o desequilíbrio era mais visível que nas seções, porque o hero empilha
+  trilha + título + parágrafo + botão encostados na mesma borda e ainda tem a
+  arte de ondas puxando o olhar para a direita.
+*/
+@media (max-width: 640px) {
+  .heroCopy {
+    align-items: center;
+    text-align: center;
+  }
+
+  /* Só o texto corrido volta à esquerda; os dois usam a mesma classe de
+     parágrafo em páginas diferentes, então ambos entram. */
+  .heroLead,
+  .heroText {
+    text-align: left;
+    align-self: stretch;
+  }
+
+  /* Os botões acompanham o eixo do título em vez de ficarem soltos na borda. */
+  .actions {
+    justify-content: center;
+  }
+
+  /* A trilha é curta e fica acima do título: centralizada ela vira a primeira
+     linha do mesmo eixo, em vez de um rabicho no canto. */
+  .crumbs {
+    justify-content: center;
+  }
+
+  .prose {
+    align-items: center;
+    text-align: center;
+  }
+
+  /* No bloco de texto o parágrafo é o conteúdo principal, não apoio: mantém
+     margem esquerda e largura cheia. */
+  .prose p {
+    text-align: left;
+    align-self: stretch;
+  }
+
+  /* A faixa de chamada final segue o mesmo padrão em todas as páginas. */
+  .ctaCopy {
+    align-items: center;
+    text-align: center;
+    margin-inline: auto;
+  }
+
+  .ctaText {
+    text-align: left;
+    align-self: stretch;
+  }
+
+  .ctaActions {
+    justify-content: center;
+  }
+}
+
 /* --------------------------------------------------------- wave divider */
 
 /* Onda entre duas faixas. O display:block no SVG tira o espaço de linha de

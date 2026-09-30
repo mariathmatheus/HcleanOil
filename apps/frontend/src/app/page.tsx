@@ -55,6 +55,7 @@ export default function HomePage() {
            crítico. O vídeo é decoração: entra depois do load, só no desktop e
            só para quem não pediu menos movimento. */
         poster="/institucional/hero.webp"
+        posterMobile="/institucional/hero-mobile.webp"
         posterAlt="Barreira de contenção HCLEAN cercando uma área durante operação de resposta"
         video={{ webm: '/video/background.webm', mp4: '/video/background.mp4' }}
         stats={heroStats}

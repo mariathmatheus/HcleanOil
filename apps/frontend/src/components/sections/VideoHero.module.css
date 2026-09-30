@@ -23,8 +23,35 @@
   object-fit: cover;
 }
 
+/* Empilhamento em valores positivos: mídia 0, véu 1, conteúdo 2. Com índices
+   negativos o <picture> do pôster abria contexto próprio e escapava para a
+   frente do véu, deixando a foto crua por cima do texto. */
 .media {
-  z-index: -2;
+  z-index: 0;
+}
+
+/* O pôster do <picture>. Quem escolhe o arquivo é o `media` do <source>, em
+   markup — nada de alternar por CSS aqui: um `<img>` escondido com
+   `display: none` continua sendo baixado, porque o scanner de preload lê o
+   `srcset` antes de o CSS existir. Ver o comentário longo em VideoHero.tsx.
+
+   O `<picture>` é só um invólucro, então ele também precisa preencher o
+   quadro; senão o `inset: 0` do `<img>` se mede contra o hero e não contra
+   o pai direto. */
+.media picture {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.poster {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 /* O vídeo entra sobre o poster, então precisa cobrir o mesmo quadro exato —
@@ -64,7 +91,7 @@
 .scrim {
   position: absolute;
   inset: 0;
-  z-index: -1;
+  z-index: 1;
   background:
     linear-gradient(180deg, rgba(6, 26, 17, 0.58) 0%, rgba(6, 26, 17, 0.46) 42%, rgba(6, 26, 17, 0.84) 100%),
     linear-gradient(120deg, rgba(9, 43, 27, 0.9) 0%, rgba(14, 61, 39, 0.78) 50%, rgba(23, 80, 52, 0.74) 100%);
@@ -74,6 +101,12 @@
 
 .inner {
   position: relative;
+  /* Empilhamento explícito em vez de depender de o fundo estar em z-index
+     negativo: o <picture> do pôster abre contexto próprio, e um índice
+     negativo aplicado ao container não desce o que está dentro dele. Com o
+     conteúdo declarado acima, o texto fica na frente do fundo
+     independentemente de como a mídia se organiza por dentro. */
+  z-index: 2;
   width: 100%;
   padding-block: 96px 88px;
   display: flex;
@@ -240,6 +273,31 @@
     max-width: none;
     font-size: 10px;
     letter-spacing: 0.04em;
+    /* `balance` reparte as linhas em larguras parecidas, mas continua deixando
+       cada coluna com a altura que quiser. Aqui o que incomoda é justamente a
+       diferença: o rótulo mais longo tem 45 caracteres contra 29 e 28 dos
+       vizinhos e virava quatro linhas ao lado de duas, com a base desalinhada
+       e a palavra maior ("EQUIPAMENTOS") passando da coluna de 110px. Daí
+       `pretty`, que evita a última linha solta, mais a reserva de altura
+       abaixo. */
+    text-wrap: pretty;
+    /* Nenhuma palavra pode ultrapassar a coluna: numa faixa de ~110px
+       "EMERGÊNCIAS" e "EQUIPAMENTOS" encostavam no número vizinho. A quebra
+       com hífen só entra quando a palavra sozinha não cabe. */
+    overflow-wrap: break-word;
+    hyphens: auto;
+    /*
+      As três colunas reservam a mesma altura de rótulo, ditada pelo mais
+      longo. Sem isso o grid alinha cada coluna pelo próprio conteúdo: a
+      terceira descia 29px além das outras e a linha inteira ficava torta — era
+      esse degrau que o cliente leu como sobreposição.
+
+      O valor são três linhas do próprio rótulo (line-height 1,45), e como o
+      texto começa no topo da caixa quem usa só duas deixa a terceira em
+      branco, mantendo ícone, número e primeira linha alinhados.
+    */
+    display: block;
+    min-height: calc(3 * 1.45em);
   }
   .wave {
     height: 48px;
@@ -252,5 +310,9 @@
   .statLabel {
     font-size: 9px;
     letter-spacing: 0.02em;
+    /* A 320px sobram ~87px por coluna e o rótulo longo chega a quatro linhas
+       mesmo com o corpo menor; a reserva acompanha para a base continuar
+       alinhada. */
+    min-height: calc(4 * 1.45em);
   }
 }
