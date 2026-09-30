@@ -54,31 +54,73 @@ export function Consent() {
      telefone a faixa empilha em coluna e cobre o botão por inteiro — um toque
      mirando o WhatsApp acabava caindo em "Só os essenciais". Medir em vez de
      fixar um valor porque a altura muda com a largura da tela e com o corpo
-     do texto. */
+     do texto (medido: 101px quando o texto quebra em três linhas, 79px em
+     duas), então nenhum número fixo serve.
+
+     A ALTURA VEM DO ResizeObserver, NÃO DE `offsetHeight`. Antes este efeito
+     fazia `faixa.offsetHeight` e em seguida escrevia a variável no `<html>`:
+     ler geometria depois de invalidar estilo obriga o navegador a refazer
+     estilo e layout na hora, sincronamente, no meio do JS. Era o único
+     reflow forçado do carregamento inteiro, e o PageSpeed o reportava sem
+     atribuição por estar dentro do chunk minificado.
+
+     `ResizeObserver` resolve porque a entrada JÁ TRAZ a medida: o navegador
+     a calcula durante o seu próprio layout e a entrega pronta em
+     `borderBoxSize`. Ler dali não custa layout nenhum — a caixa não precisa
+     ser consultada, ela chega no argumento. E o observer dispara uma vez na
+     observação inicial, de modo que a primeira medida vem do mesmo caminho,
+     sem precisar de uma chamada manual antes.
+
+     A escrita ainda vai para o próximo quadro. O callback do observer roda
+     depois do layout mas antes da pintura; escrever a variável ali dentro
+     invalida o estilo que o navegador acabou de resolver e o obriga a
+     resolver de novo antes de pintar. No quadro seguinte a escrita entra no
+     ciclo normal, e o atraso é invisível: a faixa sobe por animação de 220ms
+     e o botão acompanha por transição em `bottom`.
+
+     `--consent-h` saiu daqui: nenhuma folha de estilo do site a consumia
+     (conferido por busca em todo o `src`) — só `--consent-lift` é lida, por
+     WhatsAppButton.module.css. Publicar as duas era escrever duas
+     propriedades no `<html>` para usar uma. */
   useEffect(() => {
     const faixa = faixaRef.current;
     const raiz = document.documentElement;
     if (!visivel || !faixa) {
-      raiz.style.removeProperty('--consent-h');
       raiz.style.removeProperty('--consent-lift');
       return;
     }
 
-    const medir = () => {
-      const altura = faixa.offsetHeight;
-      raiz.style.setProperty('--consent-h', `${altura}px`);
-      /* Já com a folga somada: quem consome usa `var(--consent-lift, 0px)`
-         direto no calc, e sem a faixa o valor some por inteiro em vez de
-         deixar uma folga órfã empurrando o botão sem motivo. */
-      raiz.style.setProperty('--consent-lift', `${altura + 12}px`);
-    };
-    medir();
+    let quadro = 0;
 
-    const observador = new ResizeObserver(medir);
+    const observador = new ResizeObserver((entradas) => {
+      const entrada = entradas[entradas.length - 1];
+      if (!entrada) return;
+
+      /* `borderBoxSize` é o equivalente do que `offsetHeight` devolvia (borda
+         inclusa). Navegador antigo que não a preencha cai em `contentRect`,
+         que ignora padding e borda — daí a soma explícita dos 16+16 de
+         padding e 1+1 da borda que o CSS da faixa declara. */
+      const caixa = entrada.borderBoxSize?.[0];
+      const bruta = caixa ? caixa.blockSize : entrada.contentRect.height + 34;
+      /* `borderBoxSize` vem fracionário (213.17px onde `offsetHeight` dava
+         213), e o valor entra num `calc()` de `bottom`. Arredondar para cima
+         mantém a variável legível e garante que a folga nunca fique menor do
+         que a faixa realmente ocupa. */
+      const altura = Math.ceil(bruta);
+
+      cancelAnimationFrame(quadro);
+      quadro = requestAnimationFrame(() => {
+        /* Já com a folga somada: quem consome usa `var(--consent-lift, 0px)`
+           direto no calc, e sem a faixa o valor some por inteiro em vez de
+           deixar uma folga órfã empurrando o botão sem motivo. */
+        raiz.style.setProperty('--consent-lift', `${altura + 12}px`);
+      });
+    });
+
     observador.observe(faixa);
     return () => {
+      cancelAnimationFrame(quadro);
       observador.disconnect();
-      raiz.style.removeProperty('--consent-h');
       raiz.style.removeProperty('--consent-lift');
     };
   }, [visivel]);
