@@ -104,6 +104,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="pt-BR" className={exo2.variable}>
       <head>
+        {/*
+          Abre a conexão com o domínio da medição antes de o container ser
+          pedido. O PageSpeed mede 580 ms de LCP só no aperto de mão com
+          `api.hcleanoil.com.br` — DNS, TCP e TLS acontecendo no meio do
+          caminho crítico, porque nada avisa o navegador com antecedência.
+
+          `crossOrigin` é obrigatório aqui: sem ele o navegador abre uma
+          conexão anônima que o script, pedido com credenciais, não
+          reaproveita — e o aperto de mão acontece duas vezes.
+
+          Só este domínio. O Chrome recomenda no máximo quatro pré-conexões,
+          e as demais origens de terceiros entram depois da primeira pintura,
+          onde a conexão não disputa com o LCP.
+        */}
+        <link rel="preconnect" href="https://api.hcleanoil.com.br" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://api.hcleanoil.com.br" />
         <Gtm />
       </head>
       <body>
