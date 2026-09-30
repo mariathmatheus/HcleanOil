@@ -13,6 +13,13 @@ apps/backend/*.png
 apps/frontend/scripts/screenshots/
 *.tsbuildinfo
 
+# Gerado pelo Next a cada build, e com conteudo diferente em dev e em
+# producao (`.next/dev/types` contra `.next/types`). Versionado, ele ficava
+# sujo no servidor e fazia o `git pull` ABORTAR com codigo de saida 0: nada
+# era atualizado e o deploy nao acontecia, sem nenhum aviso. O proprio
+# arquivo diz "should not be edited", e o Next o recria sozinho.
+apps/frontend/next-env.d.ts
+
 # ------------------------------------------------------------------ segredos
 # Credenciais: SMTP, token do tunnel, chaves de API. Nunca versionar.
 # O padrao cobre qualquer sufixo (.env.local, .env.bak-pre-tunnel, .env.old):
