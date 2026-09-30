@@ -9,7 +9,24 @@ export const contactSchema = z
     nome: z.string().trim().min(2, 'Informe seu nome.').max(120),
     empresa: z.string().trim().min(2, 'Informe o nome da empresa.').max(160),
     email: z.string().trim().email('Informe um e-mail válido.').max(180),
-    telefone: z.string().trim().max(40).optional().or(z.literal('')),
+    /* Telefone brasileiro: 10 dígitos (fixo) ou 11 (celular), já contando o
+       DDD. A máscara do formulário cuida do visual; aqui só interessa que a
+       quantidade de dígitos feche, porque o limite de 40 caracteres sozinho
+       deixava passar qualquer coisa. Continua opcional — quem prefere ser
+       contatado por e-mail não é obrigado a informar. */
+    telefone: z
+      .string()
+      .trim()
+      .max(20)
+      .refine(
+        (v) => {
+          const d = v.replace(/\D/g, '');
+          return d.length === 10 || d.length === 11;
+        },
+        { message: 'Informe o telefone com DDD.' },
+      )
+      .optional()
+      .or(z.literal('')),
     /* Estado de entrega — define o frete: CIF no Sudeste a partir de
        R$ 1.000, FOB no resto. */
     estado: z.string().trim().max(40).optional().or(z.literal('')),

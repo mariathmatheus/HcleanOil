@@ -195,10 +195,57 @@
   color: var(--text-muted);
 }
 
+/* Mensagem de erro sob o campo. Substitui o balão nativo do navegador, que
+   saía no idioma do navegador e desaparecia ao primeiro clique. */
 .error {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
   font: var(--type-body-sm);
   font-size: 12px;
   color: var(--hc-danger);
+}
+
+/* O "!" antes da mensagem: distingue o erro de uma dica (`.hint`) para quem
+   não percebe a diferença de cor. */
+.error::before {
+  content: '!';
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  margin-top: 1px;
+  border-radius: var(--radius-circle);
+  background: var(--hc-danger);
+  color: var(--hc-white);
+  font: var(--fw-bold) 10px/1 var(--font-display);
+}
+
+/* Campo inválido. `aria-invalid` é o seletor de propósito: o estado visual e o
+   estado anunciado pelo leitor de tela saem do mesmo atributo, e não podem
+   divergir. Vem depois de `:hover`/`:focus` acima para vencer os dois — sem
+   isso o campo errado ganhava o anel VERDE da marca ao receber foco, que lê
+   como acerto justamente no campo que a pessoa precisa corrigir. */
+.input[aria-invalid='true'],
+.select[aria-invalid='true'],
+.textarea[aria-invalid='true'] {
+  border-color: var(--hc-danger);
+  background: var(--hc-danger-bg);
+}
+
+.input[aria-invalid='true']:hover,
+.select[aria-invalid='true']:hover,
+.textarea[aria-invalid='true']:hover {
+  border-color: var(--hc-danger);
+}
+
+.input[aria-invalid='true']:focus,
+.select[aria-invalid='true']:focus,
+.textarea[aria-invalid='true']:focus {
+  border-color: var(--hc-danger);
+  box-shadow: 0 0 0 3px rgba(196, 57, 43, 0.28);
 }
 
 /* ---------------------------------------------------------------- pedido */
