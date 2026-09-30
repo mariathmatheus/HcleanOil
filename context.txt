@@ -114,6 +114,15 @@ inflando a contagem. É do lado do Flavio, não do site.
 
 ## Armadilhas do ambiente
 
+- **`curl` sem cabeçalho de navegador engana.** A Cloudflare decide por
+  `Accept` e `User-Agent`: um `curl` pelado não casa a regra de cache
+  (dá ~450 ms na origem em vez de 60 ms na borda) e não recebe scripts
+  que a borda injeta condicionalmente. Já produziu DOIS diagnósticos
+  errados meus hoje — o beacon "removido" que não estava, e um susto de
+  TTFB. Sempre medir com
+  `-H "User-Agent: Mozilla/5.0" -H "Accept: text/html"`, ou de navegador
+  de verdade.
+
 - `pkill` NÃO existe neste shell. Servidores zumbis já causaram um falso
   alarme de "hero quebrado" que era build velho sendo servido.
 - tsx não resolve o caminho curto `MARIAT~1`; usar o caminho completo
