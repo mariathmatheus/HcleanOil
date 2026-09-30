@@ -1,3 +1,6 @@
+import { existsSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { config as carregarEnv } from 'dotenv';
 import { z } from 'zod';
 
@@ -20,7 +23,32 @@ import { z } from 'zod';
  * para resolver. Quem precisa de valor diferente numa máquina define a
  * variável no ambiente, que vence os dois.
  */
-carregarEnv({ path: '.env.producao', override: true });
+/* Os caminhos saem da localização deste módulo, e não do diretório de
+   trabalho: dentro do container o processo sobe de `/app` com o código em
+   `/app/dist`, e um caminho relativo silenciosamente não encontrava nada.
+   Procura na raiz do serviço e um nível acima, que cobre rodar do fonte e
+   rodar do build. */
+const aqui = dirname(fileURLToPath(import.meta.url));
+const candidatos = [
+  resolve(aqui, '../../.env.producao'),
+  resolve(aqui, '../.env.producao'),
+  resolve(process.cwd(), '.env.producao'),
+];
+
+const encontrado = candidatos.find((caminho) => existsSync(caminho));
+if (encontrado) {
+  carregarEnv({ path: encontrado, override: true });
+} else {
+  /* Não interrompe: em desenvolvimento o `.env` sozinho basta. Mas avisa alto,
+     porque em produção este arquivo ausente significa configuração velha
+     valendo — foi assim que o formulário passou a responder sucesso sem que
+     nenhum e-mail saísse. */
+  console.warn(
+    '[env] .env.producao não encontrado; valendo apenas o .env local.',
+    `Procurado em: ${candidatos.join(', ')}`,
+  );
+}
+
 carregarEnv();
 
 /**

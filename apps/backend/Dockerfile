@@ -33,6 +33,13 @@ RUN npm ci --omit=dev && npm cache clean --force
 
 COPY --from=build /app/dist ./dist
 
+# Configuração de produção que não é segredo (endereço do servidor de e-mail,
+# destinatários). Precisa entrar na imagem: sem ela o processo caía no `.env`
+# antigo do host, que ainda aponta para o endereço de SMTP que deixou de
+# existir — o formulário respondia sucesso e nada saía. A senha continua fora
+# da imagem, chegando por env_file em tempo de execução.
+COPY .env.producao ./.env.producao
+
 # As propostas geradas e o contador de numeração são gravados em disco. O
 # diretório é ponto de montagem de um volume (ver docker-compose), para a
 # numeração sobreviver à recriação do container.
