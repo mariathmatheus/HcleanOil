@@ -61,10 +61,40 @@ const nextConfig = {
   // LCP no tempo de resposta do CDN, que é o que o Core Web Vitals mede.
   compress: true,
   images: {
-    /* Só WebP no caminho crítico.
-       AVIF comprime melhor, mas o encode e uma ordem de grandeza mais lento, e
-       o hero da home (a unica imagem `fill` a 100vw, origem 1920px) era a mais
-       cara de todas: o LCP media o tempo de encode, nao o de download. */
+    /* AVIF primeiro, WebP como fallback.
+
+       A versao anterior deixava so WebP, com a justificativa de que o encode
+       AVIF seria "uma ordem de grandeza mais lento" e que o LCP mediria o
+       encode em vez do download. REMEDIDO neste build (Next 16.3.1), com o
+       cache de imagem apagado antes de CADA requisicao, 7 amostras por caso,
+       mediana:
+
+         hero-mobile w=750 q=55 (LCP do telefone)
+           webp  14552 B  84ms        avif   9635 B  94ms   -33,8% / +11ms
+         hero      w=1440 q=68 (LCP do desktop)
+           webp  18872 B  89ms        avif  16756 B 103ms   -11,2% / +14ms
+         cinza-manta w=750 q=75 (a foto de produto mais pesada)
+           webp  21938 B  60ms        avif  12909 B  63ms   -41,2% /  +3ms
+         cinza-manta w=384 q=75
+           webp   5942 B  30ms        avif   3898 B  36ms   -34,4% /  +6ms
+
+       A premissa estava errada: a penalidade de encode e de +3 a +14ms, nao
+       uma ordem de grandeza. E ela e paga UMA VEZ por variante — as paginas
+       sao todas prerenderizadas no build, o otimizador roda sob demanda mas
+       grava em .next/cache/images com o `minimumCacheTTL` de um ano abaixo, e
+       a Cloudflare ainda fica na frente. Servido quente: 2 a 20ms nos dois
+       formatos.
+
+       O ganho de bytes, medido no carregamento real a 412px (slow 4G, CPU 4x):
+         home           32,8 kB -> 26,5 kB  (-19%)
+         pagina de produto 67,0 kB -> 48,6 kB  (-27%)
+
+       Todo navegador do browserslist do projeto (chrome>=111, safari>=16.4,
+       firefox>=111, edge>=111) le AVIF, e quem nao le recebe o WebP pelo
+       `Accept` — a lista tem os dois justamente por isso.
+
+       A ordem importa: o Next serve o PRIMEIRO formato da lista que o
+       `Accept` do cliente aceita. */
     formats: ['image/avif', 'image/webp'],
 
     /* Um ano. O default sao 4 horas, e a cada expiracao a primeira visita

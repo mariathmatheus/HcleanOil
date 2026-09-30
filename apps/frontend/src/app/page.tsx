@@ -107,9 +107,27 @@ export default function HomePage() {
                 /* Bem abaixo da dobra, mas entrava na rede no instante exato
                    em que o hero precisa pintar, disputando banda com o LCP. */
                 loading="lazy"
-                /* Renderiza num painel lateral, nunca em largura total: pedir
-                   100vw no telefone trazia uma variante grande à toa. */
-                sizes="(max-width: 900px) 92vw, 40vw"
+                /* MEDIDO a dpr 1 em cada degrau. O `40vw` anterior não errava
+                   de direção — nunca ampliava — mas pedia pixel a mais em
+                   toda a faixa de desktop, porque a coluna do Split (0,9fr)
+                   TRAVA a imagem em 547,5px a partir de 1280 enquanto o 40vw
+                   continua crescendo com a janela:
+
+                     vw=1024 caixa 426  -> servia 640w  (1,50x)
+                     vw=1200 caixa 510  -> servia 640w  (1,26x)
+                     vw=1280 caixa 548  -> servia 640w  (1,17x)
+                     vw=1920 caixa 548  -> servia 828w  (1,51x)
+
+                   Acima de 900px o Split é 1fr/0,9fr com gap de 56px dentro do
+                   container de 1280 e gutter-lg de 32: (1280-64-56)*0,9/1,9 =
+                   547,6. Declarar os 548px fixos põe 1280 e 1920 no mesmo
+                   degrau de 640w em vez de 828w.
+
+                   Abaixo de 900 o Split vira 1 coluna e a imagem ocupa a
+                   largura da página menos o padding (medido: 318 a 360px,
+                   834 a 900px) — daí o calc() em vez do 92vw, que a 360px
+                   pedia 331 para uma caixa de 318. */
+                sizes="(max-width: 900px) calc(100vw - 42px), 548px"
               />
               <span className={s.imageBadge}>
                 <Icon name="shield" size={16} />

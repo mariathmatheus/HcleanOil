@@ -167,7 +167,19 @@ export default async function ProdutoPage({ params }: Params) {
               width={620}
               height={465}
               priority
-              sizes="(max-width: 900px) 100vw, 45vw"
+              /* MEDIDO a dpr 1. O `45vw` crescia com a janela, mas a coluna do
+                 HeroSplit TRAVA a imagem em 549px a partir de 1280:
+
+                   vw= 900 caixa 834 -> servia 1080w (1,29x)
+                   vw=1280 caixa 549 -> servia  640w (1,17x)
+                   vw=1440 caixa 549 -> servia  750w (1,37x)
+                   vw=1920 caixa 549 -> servia 1080w (1,97x)
+
+                 A 1920 isso é o DOBRO dos pixels necessários numa imagem com
+                 `priority`, ou seja no caminho crítico do LCP desta página.
+                 Fixar 549px acima de 900 põe 1280, 1440 e 1920 todos no degrau
+                 de 640w. Abaixo de 900 o Split é 1 coluna. */
+              sizes="(max-width: 900px) calc(100vw - 42px), 549px"
             />
           </div>
         </HeroSplit>
@@ -217,7 +229,26 @@ export default async function ProdutoPage({ params }: Params) {
                       alt={`${f.name} — ${product.name}`}
                       width={420}
                       height={315}
-                      sizes="(max-width: 900px) 100vw, 33vw"
+                      /* MEDIDO a dpr 1. O `(max-width:900px) 100vw, 33vw`
+                         errava nas DUAS direções, porque o grid de formatos
+                         quebra em 1024 e 640, não em 900:
+
+                           vw= 720 caixa 326 -> servia  750w (2,30x)
+                           vw= 768 caixa 350 -> servia  828w (2,37x)
+                           vw= 900 caixa 404 -> servia 1080w (2,67x)
+                           vw= 901 caixa 404 -> servia  384w (0,95x AMPLIA)
+                           vw=1024 caixa 466 -> servia  384w (0,82x AMPLIA)
+
+                         Entre 641 e 900 o grid já é de 2 colunas mas o `sizes`
+                         ainda declarava 100vw — 2,5x de pixels. E em 901-1024
+                         o 33vw caía ABAIXO da caixa e o navegador esticava a
+                         variante, que é o mesmo defeito que o hero já teve.
+
+                         Acima de 1024 são três colunas travadas pelo container
+                         de 1280: (1280-64-48)/3 = 389,3, e o degrau útil é o
+                         de 384 — pedir 390 passava do candidato e subia para
+                         640w, quase o dobro dos bytes por 6px. */
+                      sizes="(max-width: 640px) calc(100vw - 40px), (max-width: 1024px) calc((100vw - 88px) / 2), 384px"
                     />
                   </div>
                   <div className={s.formatBody}>

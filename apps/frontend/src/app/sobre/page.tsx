@@ -70,7 +70,13 @@ export default function SobrePage() {
                 alt="Operação de cerco com barreira de contenção HCLEAN"
                 width={560}
                 height={420}
-                sizes="(max-width: 900px) 100vw, 40vw"
+                /* MEDIDO a dpr 1: acima de 900px a coluna do Split trava a
+                   imagem em 547,5px, e o 40vw continuava crescendo com a
+                   janela — a 1920 servia 828w para uma caixa de 548 (1,51x).
+                   Abaixo de 900 o Split vira 1 coluna e a imagem ocupa a
+                   largura da pagina menos o padding. Mesma geometria do painel
+                   lateral da home; ver o comentario em app/page.tsx. */
+                sizes="(max-width: 900px) calc(100vw - 42px), 548px"
               />
             </div>
           </Split>
@@ -129,7 +135,13 @@ export default function SobrePage() {
                 alt="Linhas de material absorvente fabricadas pela HCLEAN"
                 width={560}
                 height={560}
-                sizes="(max-width: 900px) 100vw, 40vw"
+                /* MEDIDO a dpr 1: acima de 900px a coluna do Split trava a
+                   imagem em 547,5px, e o 40vw continuava crescendo com a
+                   janela — a 1920 servia 828w para uma caixa de 548 (1,51x).
+                   Abaixo de 900 o Split vira 1 coluna e a imagem ocupa a
+                   largura da pagina menos o padding. Mesma geometria do painel
+                   lateral da home; ver o comentario em app/page.tsx. */
+                sizes="(max-width: 900px) calc(100vw - 42px), 548px"
               />
             </div>
             <Prose>

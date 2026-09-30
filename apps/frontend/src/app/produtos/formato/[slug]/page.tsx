@@ -193,7 +193,23 @@ export default async function FormatoPage({ params }: Params) {
                     alt={`${formato.name} — ${v.lineName}`}
                     width={600}
                     height={600}
-                    sizes="(max-width: 720px) 100vw, 33vw"
+                    /* MEDIDO a dpr 1. O `(max-width:720px) 100vw, 33vw` tinha
+                       o degrau no lugar errado: a grade de `.variants` quebra
+                       em 767 e 640 (ver formato.module.css), não em 720.
+
+                         vw= 641 caixa 286 -> servia 750w (2,62x)
+                         vw= 720 caixa 326 -> servia 750w (2,30x)
+                         vw= 721 caixa 326 -> servia 256w (0,78x AMPLIA)
+                         vw=1280 caixa 387 -> servia 640w (1,65x)
+
+                       Os 721px eram o pior caso: logo depois do degrau de 720
+                       o `sizes` passava a 33vw = 238 para uma caixa de 326 e o
+                       navegador esticava a variante de 256 — borrão numa foto
+                       de produto. Alinhado aos degraus reais do CSS: três
+                       colunas acima de 767 (travadas pelo container de 1280 em
+                       389,3, e o candidato útil é o de 384), duas entre 641 e
+                       767, uma até 640. */
+                    sizes="(max-width: 640px) calc(100vw - 40px), (max-width: 767px) calc((100vw - 72px) / 2), 384px"
                   />
                 </div>
                 <div className={s.variantBody}>
