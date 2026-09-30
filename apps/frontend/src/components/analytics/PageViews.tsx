@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
-import { enviarEvento, guardarUtms } from '@/lib/analytics';
+import { enviarEvento, guardarUtms, identificadoresDeCampanha } from '@/lib/analytics';
 
 /**
  * Registra a troca de página na navegação sem recarga.
@@ -35,11 +35,24 @@ export function PageViews() {
       return;
     }
 
+    /* As UTMs vão junto em cada troca de página.
+
+       `window.location.href` já não as tem: elas chegam na URL do primeiro
+       acesso e somem na primeira navegação interna, porque o App Router
+       troca a rota sem recarregar. Sem reanexá-las aqui, o container via a
+       segunda página em diante como tráfego direto, e a conversão que
+       acontece lá — que é a maioria — perdia a campanha de origem.
+
+       Vêm de `identificadoresDeCampanha`, que lê o que foi guardado na
+       chegada e dá prioridade ao que estiver na URL atual. */
+    const campanha = identificadoresDeCampanha();
+
     enviarEvento({
       event: 'page_view_spa',
       page_path: pathname,
       page_location: window.location.href,
       page_title: document.title,
+      ...campanha,
     });
   }, [pathname]);
 
