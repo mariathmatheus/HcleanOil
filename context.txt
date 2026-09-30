@@ -1,0 +1,129 @@
+# context.txt — estado da sessão
+
+Atualizado em 2026-09-30. Serve para retomar o trabalho sem reler tudo.
+
+## Regra inegociável
+
+O container GTM (GTM-KJFXS8JX via api.hcleanoil.com.br), o GA4
+(G-XPZPW4K6KS), o Ads (AW-17481303192) e a camada de dataLayer são do
+Flavio. A campanha já funcionava; nós nos adaptamos a ela.
+
+Preservar sempre:
+- `src/lib/analytics.ts` e `src/components/analytics/Gtm.tsx`.
+- Os ids que o rastreamento dele lê por CSS: `#form-field-Nome`,
+  `#form-field-Email`, `#form-field-phone`.
+- `api.whatsapp.com` na URL (a conversão dele casa "api.whatsapp";
+  wa.me não casa).
+- Os slugs em português já publicados.
+
+## Problemas reportados e estado
+
+### 1. E-mail não chega / formulário recusa o envio — O MAIS GRAVE
+Status: CAUSA RAIZ CORRIGIDA no DNS. Falta deploy.
+
+CAUSA: o MX da zona e `mail.hcleanoil.com.br` apontavam para o TÚNEL DO
+SITE (`5813ee08-...cfargotunnel.com`), que só tem IPv6 privado e carrega
+apenas HTTP. Todo SMTP de saída dava timeout de ~21 s e a rota devolvia
+502. O e-mail de ENTRADA do domínio também estava quebrado.
+
+Isso foi consequência de eu ter apontado a raiz para o túnel.
+
+CORRIGIDO (com autorização do usuário):
+- `mail.hcleanoil.com.br`: CNAME->raiz  =>  A 45.148.96.63, DNS-only.
+- MX: `hcleanoil.com.br` => `mail.hcleanoil.com.br`, prioridade 0.
+- `SMTP_HOST` voltou a ser `mail.hcleanoil.com.br` (o IP literal era
+  remendo enquanto o DNS estava quebrado).
+Medido: conecta em 70-112 ms na 465. Antes: timeout.
+
+AINDA FALTA: `docker compose up -d --build` no servidor, porque o .env e
+o timeout do mailer só valem depois do rebuild.
+
+(histórico do diagnóstico abaixo)
+Reproduzi HTTP 502 em envio válido contra produção; envio inválido
+devolve 400 em 0,4 s. Aponta para o caminho de e-mail ou PDF, não para a
+validação.
+Ressalva: o limitador é 5 envios por IP a cada 15 min e eu gastei a cota
+testando, então parte dos 502 pode ser efeito colateral meu. Isso
+precisa ser separado com medição limpa.
+`trust proxy` ESTÁ configurado (`src/index.ts:10`), então o limite é por
+IP real — um visitante não bloqueia os outros.
+
+### 2. UTM não passava de página para página
+Status: CORRIGIDO (commit 2321328, no ar).
+Causa: `page_view_spa` mandava `page_location` de
+`window.location.href`, que já não tem as UTMs na segunda página.
+Corrigido anexando `identificadoresDeCampanha()` ao evento.
+Medido: utm_source, utm_medium, utm_campaign e gclid chegam na 2ª e 3ª
+página.
+
+### 3. Telefone aceitava dígitos infinitos
+Status: CORRIGIDO, aguardando commit (arquivo em edição por agente).
+Máscara no front (corta em 11 dígitos, formata, descarta letras) e
+backend passou a exigir 10 ou 11 dígitos.
+
+### 4. add_to_cart / remove_from_cart
+Status: EM ANDAMENTO. O Flavio não quer ser notificado desses eventos.
+Remover as duas chamadas em QuoteModal.tsx, MANTENDO as funções em
+analytics.ts. Não mexer em view_item, view_item_list, begin_checkout,
+generate_lead, form_error, contact_click nem nos de consentimento.
+
+### 5. "Pageview não está funcionando"
+Status: RESOLVIDO PELO FLAVIO, do lado dele, no container.
+A medição já indicava que funcionava; ele ajustou algo na configuração.
+
+MAS a duplicidade CONTINUA (verificado depois do ajuste dele): dois
+collect na mesma propriedade G-XPZPW4K6KS na carga inicial, um
+`en=page_view` e um `en=PageView` (nome do Meta), com o mesmo `_p`.
+É do container, não nosso — nosso código nunca nomeia evento `PageView`.
+Só repassar como observação.
+
+Outras observações do container, também não nossas:
+- Na página de produto sai `en=View_item_barreira`, nome customizado por
+  produto. Isso fragmenta os relatórios de e-commerce do GA4, que esperam
+  `view_item` com o produto dentro de `ecommerce.items` — que é o que
+  nosso código empurra.
+- `visitorapi` responde 402 "exceed free plan quota". Está morta em
+  produção e só gera erro no console.
+
+Medido em produção: `page_view` dispara na entrada E na navegação para
+/produtos, com a URL certa. O pageview está de pé.
+O que achei de verdade: **DOIS page_view na mesma propriedade GA4 na
+carga inicial** — um `page_view` e um `PageView` (nome do Meta),
+ambos para tid=G-XPZPW4K6KS. Tag mal configurada no container dele,
+inflando a contagem. É do lado do Flavio, não do site.
+
+## Já entregue antes desta rodada
+
+- Cabeçalho mobile com hambúrguer (133px → 65px).
+- Vídeo de fundo no hero: 3,05 MB → 419 kB, zero peso no carregamento
+  inicial, não baixa em celular nem sob "reduzir movimento".
+- LCP mobile: recorte retrato, 33 kB → 14,8 kB.
+- CLS mobile zerado.
+- Lighthouse: desempenho celular 85 → 93, desktop 100, a11y 100, SEO 100.
+- Layout mobile: centralização de títulos/CTAs (corpo segue à esquerda),
+  em todas as 17 rotas.
+- Cloudflare: Email Obfuscation OFF, Early Hints ON.
+
+## Armadilhas do ambiente
+
+- `pkill` NÃO existe neste shell. Servidores zumbis já causaram um falso
+  alarme de "hero quebrado" que era build velho sendo servido.
+- tsx não resolve o caminho curto `MARIAT~1`; usar o caminho completo
+  `C:\Users\mariathdev\AppData\Local\Temp\claude\...`.
+- Em `page.evaluate`, NUNCA passar arrow function: o esbuild injeta
+  `__name`, que não existe no navegador. Passar string com IIFE.
+- `globals.css` tem `scroll-behavior: smooth`, que quebra
+  `scrollTo` + medição imediata. Usar `reducedMotion: 'reduce'`.
+- `next-env.d.ts` é gerado pelo build; reverter sempre antes de commitar.
+- Importar playwright por caminho absoluto a partir de apps/backend.
+
+## Lição que se repetiu
+
+Três vezes nesta sessão a correção "óbvia" estava errada e só a medição
+pegou: o `:last-child` que não casava por causa de um `<script>`; a
+proposta de zerar descendentes que teria matado os cards da home; e o
+`sizes` do hero, onde o atributo estava certo e a geometria errada.
+
+E uma vez eu validei o alvo errado: conferi o sessionStorage das UTMs,
+que sempre esteve correto, em vez do que o container recebia no evento.
+Medir a coisa certa importa tanto quanto medir.
