@@ -69,6 +69,34 @@ export function leadNotification(
     rows.push({ label: item.label, value: escapeHtml(item.value) });
   }
 
+  /* De onde veio o lead. Os parâmetros de campanha já chegavam ao servidor e
+     seguiam para a medição, mas não apareciam em e-mail nenhum: quem abria a
+     solicitação não sabia se era busca paga, orgânico ou indicação, e não dava
+     para priorizar nem para reconciliar uma venda fechada com o anúncio que a
+     trouxe. Só entra quando há o que mostrar, para não poluir o lead direto. */
+  const origem = [
+    data.utm_source && `origem ${data.utm_source}`,
+    data.utm_medium && `mídia ${data.utm_medium}`,
+    data.utm_campaign && `campanha ${data.utm_campaign}`,
+    data.utm_term && `termo ${data.utm_term}`,
+    data.utm_content && `anúncio ${data.utm_content}`,
+  ]
+    .filter(Boolean)
+    .join(' · ');
+
+  if (origem) {
+    rows.push({ label: 'Campanha', value: escapeHtml(origem) });
+  }
+  /* O clique pago vale destacar à parte: é o que permite casar a venda com o
+     anúncio no relatório do Ads. */
+  const clique = data.gclid || data.gbraid || data.wbraid || data.msclkid || data.fbclid;
+  if (clique) {
+    rows.push({ label: 'Identificador do clique', value: escapeHtml(clique) });
+  }
+  if (data.pagina_origem) {
+    rows.push({ label: 'Página de origem', value: escapeHtml(data.pagina_origem) });
+  }
+
   rows.push({ label: 'Recebido em', value: escapeHtml(data.receivedAt) });
 
   const mensagem = data.mensagem?.trim()
@@ -104,6 +132,9 @@ export function leadNotification(
       data.estado ? `Estado de entrega: ${data.estado}` : null,
       data.produto ? `Produto de interesse: ${data.produto}` : null,
       ...(data.items ?? []).map((i) => `${i.label}: ${i.value}`),
+      origem ? `Campanha: ${origem}` : null,
+      clique ? `Identificador do clique: ${clique}` : null,
+      data.pagina_origem ? `Página de origem: ${data.pagina_origem}` : null,
       `Recebido em: ${data.receivedAt}`,
       '',
       data.mensagem?.trim() ? `Observações:\n${data.mensagem.trim()}` : null,

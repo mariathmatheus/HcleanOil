@@ -117,7 +117,11 @@ export async function gerarProposta(pedido: PedidoProposta): Promise<PropostaGer
   const dados: DadosProposta = {
     numero,
     data: hoje(),
-    validade: emDias(15),
+    /* 30 dias, igual ao que o documento diz em CONDICOES.validade e ao que os
+       e-mails prometem. Ficou 15 aqui por um tempo, sem contradizer nada só
+       porque o campo não chega a ser renderizado — mas seria um desmentido
+       silencioso no dia em que alguém o usasse. */
+    validade: emDias(30),
     cliente: {
       nome: pedido.nome,
       empresa: pedido.empresa,
