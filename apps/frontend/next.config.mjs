@@ -38,18 +38,31 @@ const nextConfig = {
          permanente para a home preserva esse tráfego. */
       { source: '/contato', destination: '/', permanent: true },
 
-      /* Atalhos em inglês para o rastreamento de mídia.
-         São 302, não 301: a URL canônica continua sendo a em português, que
-         é a que carrega a palavra-chave que o comprador busca. Um 301 pediria
-         ao Google para trocar a URL indexada, que é o oposto do que se quer —
-         aqui o atalho serve a campanha, não ao índice. */
-      { source: '/containmentbarrier', destination: '/produtos/barreira-de-contencao-seafence', permanent: false },
-      { source: '/whiteline', destination: '/produtos/linha-branca', permanent: false },
-      { source: '/greenline', destination: '/produtos/linha-verde', permanent: false },
-      { source: '/grayline', destination: '/produtos/linha-cinza', permanent: false },
-      { source: '/absorbentmaterials', destination: '/produtos#absorventes', permanent: false },
-      { source: '/kits', destination: '/produtos/kit-sopep', permanent: false },
-      { source: '/oiltank', destination: '/produtos/tanque-terrestre', permanent: false },
+      /* Os slugs passaram para inglês porque o rastreamento de mídia
+         identifica cada página pela URL conter a palavra (whiteline,
+         oiltank...), não por evento — redirect não resolveria, já que a URL
+         final é que precisa casar.
+
+         301 das URLs antigas: elas já estavam no ar e no sitemap, e é o 301
+         que transfere ao endereço novo a autoridade acumulada. */
+      { source: '/produtos/linha-branca', destination: '/produtos/whiteline', permanent: true },
+      { source: '/produtos/linha-cinza', destination: '/produtos/grayline', permanent: true },
+      { source: '/produtos/linha-verde', destination: '/produtos/greenline', permanent: true },
+      { source: '/produtos/turfa-organica', destination: '/produtos/absorbentmaterials-turfa', permanent: true },
+      { source: '/produtos/kit-sopep', destination: '/produtos/kits-sopep', permanent: true },
+      { source: '/produtos/kit-primeiro-atendimento', destination: '/produtos/kits-primeiro-atendimento', permanent: true },
+      { source: '/produtos/tanque-terrestre', destination: '/produtos/oiltank', permanent: true },
+      { source: '/produtos/barreira-de-contencao-seafence', destination: '/produtos/containmentbarrier-seafence', permanent: true },
+      { source: '/produtos/barreira-de-contencao-abfence', destination: '/produtos/containmentbarrier-abfence', permanent: true },
+
+      /* Atalhos curtos, para a mídia usar direto no anúncio. */
+      { source: '/whiteline', destination: '/produtos/whiteline', permanent: false },
+      { source: '/greenline', destination: '/produtos/greenline', permanent: false },
+      { source: '/grayline', destination: '/produtos/grayline', permanent: false },
+      { source: '/containmentbarrier', destination: '/produtos/containmentbarrier-seafence', permanent: false },
+      { source: '/absorbentmaterials', destination: '/produtos/absorbentmaterials-turfa', permanent: false },
+      { source: '/kits', destination: '/produtos/kits-sopep', permanent: false },
+      { source: '/oiltank', destination: '/produtos/oiltank', permanent: false },
 
       /* www para o domínio canônico. As duas formas servindo o mesmo conteúdo
          dividiriam a autoridade entre dois endereços e o Google trataria como

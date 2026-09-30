@@ -35,7 +35,10 @@ export const site = {
     email: 'contato@hcleanoil.com.br',
     phone: '(21) 99494-5460',
     phoneHref: 'tel:+5521994945460',
-    whatsapp: 'https://wa.me/5521994945460',
+    /* api.whatsapp.com, não wa.me: o rastreamento de mídia dispara a
+       conversão quando a URL do clique contém "api.whatsapp", e o encurtador
+       não casa com essa condição. Os dois abrem a mesma conversa. */
+    whatsapp: 'https://api.whatsapp.com/send?phone=5521994945460',
     site: 'hcleanoil.com.br',
     hours: 'Seg–Sex: 08:00–18:00 · Sáb–Dom: fechado',
   },
@@ -167,7 +170,7 @@ const SINTETICO_COMUM = [
 export const products: Product[] = [
   /* ---------------------------------------------- barreiras de contenção */
   {
-    slug: 'barreira-de-contencao-seafence',
+    slug: 'containmentbarrier-seafence',
     name: 'Barreira de Contenção SeaFence',
     category: 'barreiras-de-contencao',
     lead: 'Barreira flutuante em lona reforçada para contenção de derramamentos em operações de resposta.',
@@ -204,7 +207,7 @@ export const products: Product[] = [
     image: '/produtos/barreira-seafence.webp',
   },
   {
-    slug: 'barreira-de-contencao-abfence',
+    slug: 'containmentbarrier-abfence',
     name: 'Barreira de Contenção ABFence',
     category: 'barreiras-de-contencao',
     lead: 'Barreira flutuante rígida para longos períodos ou lançamento rápido.',
@@ -238,7 +241,7 @@ export const products: Product[] = [
 
   /* ------------------------------------------------- linhas de absorvente */
   {
-    slug: 'linha-branca',
+    slug: 'whiteline',
     name: 'Linha Branca — Absorventes para hidrocarbonetos',
     category: 'absorventes',
     lead: 'Absorventes sintéticos para petróleo e derivados, que recolhem o produto sem absorver água.',
@@ -322,7 +325,7 @@ export const products: Product[] = [
     ],
   },
   {
-    slug: 'linha-cinza',
+    slug: 'grayline',
     name: 'Linha Cinza — Absorventes para líquidos em geral',
     category: 'absorventes',
     lead: 'Absorventes sintéticos de uso geral, para líquidos à base de água, detergentes, solventes e óleos.',
@@ -386,7 +389,7 @@ export const products: Product[] = [
     ],
   },
   {
-    slug: 'linha-verde',
+    slug: 'greenline',
     name: 'Linha Verde — Absorventes para líquidos agressivos',
     category: 'absorventes',
     lead: 'Absorventes sintéticos para ácidos, bases, produtos tóxicos e substâncias desconhecidas.',
@@ -454,7 +457,7 @@ export const products: Product[] = [
     ],
   },
   {
-    slug: 'turfa-organica',
+    slug: 'absorbentmaterials-turfa',
     name: 'Turfa Orgânica',
     category: 'absorventes',
     lead: 'Absorvente orgânico 100% natural e renovável, com alta taxa de absorção de hidrocarbonetos.',
@@ -490,7 +493,7 @@ export const products: Product[] = [
 
   /* ------------------------------------------------------------------ kits */
   {
-    slug: 'kit-sopep',
+    slug: 'kits-sopep',
     name: 'Kit SOPEP',
     category: 'kits-de-emergencia',
     lead: 'Kits dimensionados para contenção e absorção de vazamentos, conforme normas internacionais.',
@@ -521,7 +524,7 @@ export const products: Product[] = [
     image: '/produtos/kit-sopep.webp',
   },
   {
-    slug: 'kit-primeiro-atendimento',
+    slug: 'kits-primeiro-atendimento',
     name: 'Kit Primeiro Atendimento',
     category: 'kits-de-emergencia',
     lead: 'Kit compacto para resposta imediata, até que a equipe especializada assuma a operação.',
@@ -552,7 +555,7 @@ export const products: Product[] = [
 
   /* -------------------------------------------------------------- tanque */
   {
-    slug: 'tanque-terrestre',
+    slug: 'oiltank',
     name: 'Tanque Terrestre',
     category: 'armazenamento',
     lead: 'Tanque em lona de PVC vulcanizada para armazenamento temporário de hidrocarbonetos.',

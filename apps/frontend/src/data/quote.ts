@@ -139,39 +139,39 @@ const formatosAbsorvente = (prefix: string, comBarreiras: boolean): QuoteOption[
 
 export const quoteProducts: QuoteProduct[] = [
   {
-    slug: 'barreira-de-contencao-seafence',
+    slug: 'containmentbarrier-seafence',
     name: 'Barreira de Contenção SeaFence',
     options: [
       { id: 'seafence', label: 'Metragem desejada', fields: [metrosLineares('seafence-metros')] },
     ],
   },
   {
-    slug: 'barreira-de-contencao-abfence',
+    slug: 'containmentbarrier-abfence',
     name: 'Barreira de Contenção ABFence',
     options: [
       { id: 'abfence', label: 'Metragem desejada', fields: [metrosLineares('abfence-metros')] },
     ],
   },
   {
-    slug: 'linha-branca',
+    slug: 'whiteline',
     name: 'Linha Branca — hidrocarbonetos',
     intro: 'Selecione os formatos e informe a quantidade de cada um.',
     options: formatosAbsorvente('branca', true),
   },
   {
-    slug: 'linha-cinza',
+    slug: 'grayline',
     name: 'Linha Cinza — líquidos em geral',
     intro: 'Selecione os formatos e informe a quantidade de cada um.',
     options: formatosAbsorvente('cinza', false),
   },
   {
-    slug: 'linha-verde',
+    slug: 'greenline',
     name: 'Linha Verde — líquidos agressivos',
     intro: 'Selecione os formatos e informe a quantidade de cada um.',
     options: formatosAbsorvente('verde', false),
   },
   {
-    slug: 'turfa-organica',
+    slug: 'absorbentmaterials-turfa',
     name: 'Turfa Orgânica',
     options: [
       {
@@ -187,7 +187,7 @@ export const quoteProducts: QuoteProduct[] = [
     ],
   },
   {
-    slug: 'kit-sopep',
+    slug: 'kits-sopep',
     name: 'Kit SOPEP',
     intro: 'Selecione as capacidades e informe a quantidade de cada uma.',
     options: [
@@ -198,7 +198,7 @@ export const quoteProducts: QuoteProduct[] = [
     ],
   },
   {
-    slug: 'kit-primeiro-atendimento',
+    slug: 'kits-primeiro-atendimento',
     name: 'Kit Primeiro Atendimento',
     options: [
       {
@@ -213,7 +213,7 @@ export const quoteProducts: QuoteProduct[] = [
     ],
   },
   {
-    slug: 'tanque-terrestre',
+    slug: 'oiltank',
     name: 'Tanque Terrestre',
     options: [
       {
