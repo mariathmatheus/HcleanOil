@@ -27,15 +27,47 @@
   z-index: -2;
 }
 
+/* O vídeo entra sobre o poster, então precisa cobrir o mesmo quadro exato —
+   por isso herda o posicionamento absoluto acima em vez de participar do
+   fluxo. Como poster e vídeo ocupam a mesma caixa já reservada pelo
+   `min-height` do hero, a chegada do vídeo não desloca nada (CLS zero). */
+.video {
+  /* Entra apagado e só aparece quando há quadro para mostrar: sem isto o
+     elemento pinta preto por um instante antes do primeiro quadro decodificar,
+     e o corte pisca sobre o poster. */
+  opacity: 0;
+  transition: opacity 600ms ease;
+}
+
+.videoPronto {
+  opacity: 1;
+}
+
+/* Quem pede menos movimento não vê o vídeo de jeito nenhum. O player em JS já
+   evita montá-lo, mas a regra fica como rede de segurança para o caso de a
+   preferência mudar com o vídeo já em tela. */
+@media (prefers-reduced-motion: reduce) {
+  .media video {
+    display: none;
+  }
+}
+
 /* Overlay em duas camadas: um verde sólido que garante contraste do texto e
-   um gradiente que escurece a base, onde ficam os números. */
+   um gradiente que escurece a base, onde ficam os números.
+
+   As opacidades vêm de medição, não de gosto: amostrando o quadro real (poster
+   e vídeo codificado) na faixa de cada elemento, o ponto mais claro do fundo
+   sob o título deixava o verde de destaque (#00bf63) em 3,74:1 — passa o 3:1
+   de texto grande, mas sem folga nenhuma para uma troca futura de vídeo. Com
+   os valores abaixo o pior caso sobe a 4,71:1 e o resto fica acima de 9:1,
+   ainda deixando o plano de fundo visível. */
 .scrim {
   position: absolute;
   inset: 0;
   z-index: -1;
   background:
-    linear-gradient(180deg, rgba(6, 26, 17, 0.55) 0%, rgba(6, 26, 17, 0.35) 45%, rgba(6, 26, 17, 0.8) 100%),
-    linear-gradient(120deg, rgba(9, 43, 27, 0.88) 0%, rgba(14, 61, 39, 0.7) 50%, rgba(23, 80, 52, 0.62) 100%);
+    linear-gradient(180deg, rgba(6, 26, 17, 0.58) 0%, rgba(6, 26, 17, 0.46) 42%, rgba(6, 26, 17, 0.84) 100%),
+    linear-gradient(120deg, rgba(9, 43, 27, 0.9) 0%, rgba(14, 61, 39, 0.78) 50%, rgba(23, 80, 52, 0.74) 100%);
 }
 
 /* ------------------------------------------------------------ conteúdo -- */
@@ -103,18 +135,22 @@
   gap: 4px;
 }
 
+/* O <dd> carrega o ícone e o número, e vira coluna própria para empilhar os
+   dois. O ícone deixou de ser filho direto do .stat (um <span> solto dentro de
+   <dl> é violação de acessibilidade), então o empilhamento acontece aqui
+   dentro em vez de por `order`. */
 .stat dd {
   order: -1;
   margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
 }
 
 .statIcon {
-  order: -2;
-}
-
-.statIcon {
+  display: block;
   color: var(--hc-green-300);
-  margin-bottom: 4px;
 }
 
 .statValue {
@@ -154,22 +190,67 @@
 /* -------------------------------------------------------------- mobile -- */
 
 @media (max-width: 900px) {
+  /*
+    O hero não passa da tela. Antes o mobile zerava o `min-height` e deixava os
+    três números empilhados esticarem o quadro até ~1016px num aparelho de
+    844px: os números e a onda caíam fora da dobra, e quem abria a home rolava
+    uma tela inteira de verde quase vazio antes do conteúdo.
+
+    Além disso, com `object-fit: cover` a escala do poster é ditada pela
+    dimensão mais folgada — um hero de 390x1016 forçava a imagem a ~1800px de
+    largura, ou seja 2,4x de ampliação, e ela virava um borrão. Limitar a
+    altura conserta a nitidez junto com o enquadramento.
+  */
   .hero {
-    min-height: 0;
+    min-height: calc(100svh - var(--header-h));
+    max-height: calc(100svh - var(--header-h));
   }
   .inner {
-    padding-block: 64px 72px;
-    gap: 20px;
+    padding-block: 40px 56px;
+    gap: 16px;
   }
+  /* Os três números continuam numa linha só: empilhados é o que inflava a
+     altura. Cabem porque o número encolhe e o rótulo vira duas ou três
+     linhas estreitas. */
   .stats {
-    grid-template-columns: 1fr;
-    gap: 28px;
-    margin-top: 8px;
+    gap: 10px;
+    margin-top: 6px;
+    padding-top: 20px;
+  }
+  /* Alinha as três colunas pelo topo: o rótulo mais longo quebra em mais
+     linhas, e com o alinhamento central os ícones e números ficavam em alturas
+     diferentes. */
+  .stat {
+    justify-content: flex-start;
+  }
+  .stat dd {
+    gap: 2px;
   }
   .statValue {
-    font-size: 34px;
+    font-size: 26px;
+  }
+  .statIcon {
+    /* O ícone vira o menor elemento do grupo: em três colunas estreitas ele
+       competia por altura com o número. */
+    transform: scale(0.7);
+    transform-origin: center;
+    margin-bottom: -6px;
+  }
+  .statLabel {
+    max-width: none;
+    font-size: 10px;
+    letter-spacing: 0.04em;
   }
   .wave {
     height: 48px;
+  }
+}
+
+/* Telas de 360px: em três colunas o rótulo ganha um corpo menor para não
+   quebrar em palavras cortadas. Mantido visível — é ele que explica o número. */
+@media (max-width: 380px) {
+  .statLabel {
+    font-size: 9px;
+    letter-spacing: 0.02em;
   }
 }

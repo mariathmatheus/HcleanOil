@@ -23,7 +23,10 @@ const nextConfig = {
     /* Nenhuma imagem do projeto passa de 1920px. Sem esse corte o Next gera
        variantes 2048 e 3840 por upscale — trabalho de CPU para um resultado
        pior que o original. */
-    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+    /* O degrau de 1440 existe por causa do poster do hero: sem ele, uma tela
+       de 1440px não encontra candidato e sobe para 1920, servindo 48 kB onde
+       30 kB bastam — e essa é justamente a imagem do LCP. */
+    deviceSizes: [640, 750, 828, 1080, 1200, 1440, 1920],
     imageSizes: [256, 384],
 
     /* Qualidades aceitas pelo otimizador. Sem declarar, o Next so permite 75
@@ -68,6 +71,57 @@ const nextConfig = {
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
           { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
         ],
+      },
+
+      /* Vídeo de fundo do hero: um ano, imutável.
+         O que está sob `public/` não passa pelo pipeline do `/_next/static`,
+         que põe hash no nome e por isso ganha `immutable` de graça. Aqui o
+         nome é fixo, e o default do Next para arquivo estático é um
+         `ETag` fraco com revalidação — a cada visita o navegador manda um
+         condicional e espera o 304 antes de começar a tocar. Num arquivo de
+         alguns MB no caminho do LCP isso é um round-trip a mais por visita.
+
+         ATENÇÃO — cache-busting é manual: `immutable` autoriza o navegador
+         (e a Cloudflare) a NUNCA mais perguntar por este endereço. Trocar o
+         conteúdo do vídeo exige trocar o NOME do arquivo (background-2.webm,
+         ou um sufixo de versão); sobrescrever background.webm no lugar deixa
+         quem já visitou com o arquivo velho por até um ano, sem recurso. */
+      {
+        source: '/video/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+
+          /* Sem header de compressão aqui, de propósito.
+             Medido neste build (Next 16.3.1, `compress: true`, pedindo
+             `gzip, deflate, br, zstd`): a resposta de video/mp4 e video/webm
+             volta SEM `Content-Encoding`. O compressor do Next olha o
+             content-type e já pula mídia — vídeo é contêiner comprimido,
+             gzip/brotli não tirariam nada e só gastariam CPU dos dois lados.
+             Não há o que desligar.
+
+             Também não se declara `Content-Encoding: identity`: a RFC 9110
+             desaconselha mandar `identity` numa resposta, e num 206 há
+             proxy que trata o header como corpo codificado e passa a servir
+             faixa de bytes errada — justo o que o Safari precisa intacto
+             para começar a tocar. O certo é a ausência do header. */
+        ],
+      },
+
+      /* Mesmo raciocínio para as imagens de `public/`, mas casando pela
+         EXTENSÃO, não pela pasta.
+         `headers()` casa o caminho da URL e não sabe se existe arquivo por
+         trás: `/produtos/:path*` pegaria também `/produtos/absorvente-oleo-
+         linha-branca`, que é PÁGINA (`app/produtos/[slug]`), e um HTML com
+         `immutable` congelaria o conteúdo do site por um ano no navegador de
+         quem visitou e na borda da Cloudflare. Amarrar na extensão resolve:
+         nenhuma rota do app termina em .webp/.png/.svg/.ico.
+
+         Vale a mesma ressalva do vídeo: trocar uma imagem pede nome novo. As
+         que passam pelo `next/image` já saem com hash na URL do otimizador e
+         não dependem desta regra — ela cobre o acesso direto ao original. */
+      {
+        source: '/:path*.(webp|png|jpg|jpeg|svg|avif|woff2)',
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
       },
     ];
   },

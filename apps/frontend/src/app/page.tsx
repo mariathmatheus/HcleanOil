@@ -14,7 +14,7 @@ import {
   BrandDotsArt,
   CTABanner,
 } from '@/components/sections/Shared';
-import { Hero } from '@/components/sections/HeroBanner';
+import { VideoHero } from '@/components/sections/VideoHero';
 import { ProductCard } from '@/components/sections/ProductCard';
 import { categories, caseStudies, faq, pillars, products, site } from '@/data/site';
 import s from './home.module.css';
@@ -47,12 +47,16 @@ const faqSchema = {
 export default function HomePage() {
   return (
     <>
-      <Hero
+      <VideoHero
         title="Equipamentos de proteção ambiental"
         titleAccent="com qualidade comprovada"
         lead="Durabilidade, resistência e qualidade que garantem agilidade, segurança e conformidade ambiental no seu dia a dia operacional."
-        image="/institucional/hero.webp"
-        imageAlt="Barreira de contenção HCLEAN cercando uma área durante operação de resposta"
+        /* O poster é o LCP da home e continua sendo a única imagem no caminho
+           crítico. O vídeo é decoração: entra depois do load, só no desktop e
+           só para quem não pediu menos movimento. */
+        poster="/institucional/hero.webp"
+        posterAlt="Barreira de contenção HCLEAN cercando uma área durante operação de resposta"
+        video={{ webm: '/video/background.webm', mp4: '/video/background.mp4' }}
         stats={heroStats}
         primary={{ quote: true, label: 'Fale com um especialista' }}
         secondary={{ href: '/produtos', label: 'Conheça nossos produtos' }}
