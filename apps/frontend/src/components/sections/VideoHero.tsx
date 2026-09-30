@@ -184,6 +184,14 @@ export function VideoHero({
                 className={s.poster}
                 fetchPriority="high"
                 decoding="async"
+                /* `getImageProps` devolve `loading="lazy"` por padrão, e aqui
+                   o `priority` da <Image> não existe para corrigi-lo. Hoje os
+                   <link rel="preload"> acima buscam o arquivo de qualquer
+                   forma, então o atributo errado não custa nada — mas deixá-lo
+                   assim faz a página depender do preload para anular um
+                   `lazy` no elemento que é o próprio LCP. Se o preload sair
+                   numa refatoração, a regressão é silenciosa. */
+                loading="eager"
               />
             </picture>
           </>
