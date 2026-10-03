@@ -209,6 +209,31 @@ function lerUtms(): Record<string, string> {
   return resultado;
 }
 
+/**
+ * A URL da página com os parâmetros de campanha reanexados.
+ *
+ * O GA4 lê a atribuição do endereço da página (`dl`), e não de campos soltos
+ * no evento: é de lá que ele tira origem, mídia e campanha. Como as UTMs
+ * chegam só na URL do primeiro acesso e somem na primeira navegação interna,
+ * da segunda página em diante o endereço ia limpo e a visita era contada como
+ * tráfego direto — mesmo com os campos presentes no dataLayer.
+ *
+ * Só reanexa o que falta: se a pessoa chegou numa URL que já traz os
+ * parâmetros, eles são preservados como vieram.
+ */
+export function enderecoComCampanha(): string {
+  if (typeof window === 'undefined') return '';
+
+  const url = new URL(window.location.href);
+  for (const [chave, valor] of Object.entries(lerUtms())) {
+    /* `utm_captured_at` é registro nosso, não parâmetro de campanha: não tem
+       significado para o GA4 e só sujaria o endereço nos relatórios. */
+    if (chave === 'utm_captured_at') continue;
+    if (!url.searchParams.has(chave)) url.searchParams.set(chave, valor);
+  }
+  return url.toString();
+}
+
 export function identificadoresDeCampanha(): Record<string, string> {
   if (typeof document === 'undefined') return {};
 
