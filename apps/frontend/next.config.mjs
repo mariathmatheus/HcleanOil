@@ -138,6 +138,49 @@ const nextConfig = {
       { source: '/produtos/turfa-organica', destination: '/produtos/turfa-organica-absorvente', permanent: true },
       { source: '/produtos/tanque-terrestre', destination: '/produtos/tanque-terrestre-armazenamento', permanent: true },
 
+      /* O site anterior, em WordPress, vivia sob `/home/`. É o que o Google
+         ainda tem indexado — uma busca por `site:hcleanoil.com.br` devolve só
+         esses endereços, nenhum dos atuais. Sem estas regras eles morrem em
+         404, inclusive para o robô que revisa anúncio, e o Google reprova o
+         destino. Cada um vai para o equivalente mais próximo, e não para a
+         home, porque mandar tudo para a raiz desperdiça a intenção de quem
+         clicou procurando um produto específico. */
+      { source: '/home', destination: '/', permanent: true },
+      { source: '/home/comercial', destination: '/', permanent: true },
+      { source: '/home/about', destination: '/sobre', permanent: true },
+      { source: '/home/products', destination: '/produtos', permanent: true },
+      { source: '/home/products/kits', destination: '/produtos/kit-sopep', permanent: true },
+      {
+        source: '/home/products/containmentbarrier',
+        destination: '/produtos/barreira-de-contencao-seafence',
+        permanent: true,
+      },
+      { source: '/home/products/absorbents', destination: '/produtos', permanent: true },
+      {
+        source: '/home/products/tanks',
+        destination: '/produtos/tanque-terrestre-armazenamento',
+        permanent: true,
+      },
+      {
+        source: '/home/products/whiteline',
+        destination: '/produtos/absorvente-oleo-linha-branca',
+        permanent: true,
+      },
+      {
+        source: '/home/products/grayline',
+        destination: '/produtos/absorvente-universal-linha-cinza',
+        permanent: true,
+      },
+      {
+        source: '/home/products/greenline',
+        destination: '/produtos/absorvente-quimico-linha-verde',
+        permanent: true,
+      },
+      /* Rede de segurança: qualquer outro endereço do site antigo que ainda
+         circule em anúncio, link ou e-mail cai na home em vez de 404. Vem por
+         último, de propósito — as regras acima são mais específicas e vencem. */
+      { source: '/home/:path*', destination: '/', permanent: true },
+
       /* www para o domínio canônico. As duas formas servindo o mesmo conteúdo
          dividiriam a autoridade entre dois endereços e o Google trataria como
          duplicado. O 308 preserva o método e passa o sinal de permanente. */

@@ -33,6 +33,11 @@ const COLUMNS: { title: string; links: FooterLink[] }[] = [
       { href: '/sobre', label: 'Quem somos' },
       { href: '/sobre#historia', label: 'Nossa história' },
       { href: '/sobre#operacoes', label: 'Operações reais' },
+      /* No rodape, e nao so no aviso de cookies: a revisao do Google Ads
+         espera alcancar a politica a partir de QUALQUER pagina do site, e o
+         aviso de cookies desaparece depois da primeira escolha. O rodape e o
+         unico lugar que aparece nas 18 paginas sem excecao. */
+      { href: '/politica-de-privacidade', label: 'Política de Privacidade' },
     ],
   },
   {

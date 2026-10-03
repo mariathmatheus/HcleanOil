@@ -46,6 +46,27 @@
   color: var(--text-muted);
 }
 
+/* Link para a política dentro do texto da faixa. Sublinhado porque o texto
+   em volta já é cinza-médio: só a cor não distinguiria o link do corpo. A
+   linha extra que ele pode provocar na quebra do texto não precisa de ajuste
+   de altura — o ResizeObserver do componente mede a faixa e republica
+   `--consent-lift`, então o botão do WhatsApp acompanha sozinho. */
+.link {
+  color: var(--hc-green-600);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.link:hover {
+  color: var(--hc-green-700);
+}
+
+.link:focus-visible {
+  outline: 2px solid var(--hc-green-300);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
 .acoes {
   display: flex;
   gap: 10px;

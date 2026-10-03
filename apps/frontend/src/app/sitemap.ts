@@ -11,6 +11,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: '', priority: 1 },
     { path: '/produtos', priority: 0.9 },
     { path: '/sobre', priority: 0.8 },
+    /* A politica de privacidade entra no sitemap porque o Google Ads a procura
+       — a revisao de anuncio verifica se o anunciante que coleta dado pessoal
+       publica uma —, nao porque se espere trafego de busca nela. Prioridade
+       baixa de proposito: e pagina obrigatoria, nao pagina de venda. */
+    { path: '/politica-de-privacidade', priority: 0.3 },
   ].map((r) => ({
     url: `${site.url}${r.path}`,
     lastModified: now,

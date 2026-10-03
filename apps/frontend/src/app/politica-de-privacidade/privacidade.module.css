@@ -1,0 +1,241 @@
+/* Página de texto corrido longo — a única do site com esse formato.
+   `Prose` (sections/Shared) estiliza apenas `p`: aqui o conteúdo precisa de
+   subtítulos, listas e tabela, então os elementos faltantes vivem neste
+   módulo em vez de engordar o componente compartilhado, que é usado por
+   blocos curtos de duas ou três frases em todas as outras páginas. */
+
+/* Coluna de leitura. 72ch porque o corpo é texto jurídico lido de ponta a
+   ponta, não copy de apoio: acima disso o olho perde a linha na volta. O
+   `Prose` do Split não serve porque lá a largura vem da grade de duas
+   colunas, e esta página não tem imagem ao lado. */
+.coluna {
+  max-width: 72ch;
+}
+
+.bloco {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.bloco + .bloco {
+  margin-top: 44px;
+}
+
+.bloco h2 {
+  margin: 0;
+  font: var(--type-h3);
+  color: var(--text-strong);
+  /* `scroll-margin-top` porque o cabeçalho do site é fixo: sem isto o
+     salto pelo índice encosta o título atrás da barra. */
+  scroll-margin-top: 96px;
+}
+
+.bloco h3 {
+  margin: 18px 0 0;
+  font: var(--type-h4);
+  color: var(--text-strong);
+}
+
+.bloco p {
+  margin: 0;
+  font: var(--type-body);
+  color: var(--text-body);
+}
+
+/* ------------------------------------------------------------------ listas */
+
+.lista {
+  margin: 0;
+  /* O recuo vem do padding e não de `list-style-position: inside`, para a
+     segunda linha de um item alinhar com a primeira e não com o marcador. */
+  padding-left: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font: var(--type-body);
+  color: var(--text-body);
+}
+
+.lista ::marker {
+  color: var(--hc-green-300);
+}
+
+.lista strong {
+  color: var(--text-strong);
+}
+
+/* ------------------------------------------------------------------ tabela */
+
+/* Base legal por finalidade: três colunas curtas que no telefone não cabem.
+   O `overflow-x` fica NESTE envelope, não na tabela nem no `<section>`: a
+   rolagem precisa pertencer a um elemento cuja largura seja a da coluna de
+   texto, senão o contêiner cresce e a PÁGINA é que rola de lado. */
+.tabelaEnvelope {
+  overflow-x: auto;
+  /* Sem a borda a rolagem fica invisível em telas sem barra permanente. */
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+}
+
+/* A tabela é o único bloco da página que não cabe na coluna de 72ch: MEDIDO,
+   ela pede 734px e a coluna dá 693px a 1440, então rolava de lado numa tela
+   que tem folga de sobra. Onde a janela permite, ela escapa da coluna de
+   leitura e usa a largura do `Container` — o texto corrido continua em 72ch,
+   que é o que a legibilidade pede, e a tabela deixa de rolar.
+
+   O `calc` nasce do próprio limite: 72ch (a coluna) mais o quanto falta para
+   os 734px da tabela, dividido pelos dois lados. Acima disso não cresce, para
+   não virar uma faixa larga e solta no meio do texto. O `min()` com 0px
+   garante que em janela estreita o valor não fique negativo e a tabela
+   permaneça exatamente dentro da coluna, rolando no envelope como antes. */
+@media (min-width: 1100px) {
+  .tabelaEnvelope {
+    --escape: min(0px, calc((72ch - 734px) / 2));
+    margin-left: var(--escape);
+    margin-right: var(--escape);
+  }
+}
+
+.tabela {
+  width: 100%;
+  /* `min-width` em px e não em ch: é o ponto medido em que as três colunas
+     param de comprimir o texto a uma palavra por linha. Abaixo disso o
+     envelope rola.
+
+     720 e não 734: MEDIDO, a escapada da coluna entrega 732px úteis a 1440, e
+     734 deixava a tabela rolando por 2px — barra de rolagem à toa num espaço
+     que, na prática, cabe. */
+  min-width: 720px;
+  border-collapse: collapse;
+  font: var(--type-body-sm);
+  color: var(--text-body);
+}
+
+.tabela th,
+.tabela td {
+  padding: 12px 14px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.tabela thead th {
+  font: var(--fw-semibold) var(--fs-body-sm) / var(--lh-snug) var(--font-display);
+  color: var(--text-strong);
+  background: var(--surface-sunken);
+}
+
+.tabela tbody tr:last-child th,
+.tabela tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+/* A primeira coluna NÃO leva `white-space: nowrap`: as finalidades são frases
+   ("Cumprir obrigação legal, fiscal ou regulatória e defender direitos"), e
+   impedi-las de quebrar fazia a largura mínima da tabela ser a da frase mais
+   longa — 734px, acima dos 732 que a coluna oferece a 1440, o que deixava a
+   tabela rolando de lado numa tela com espaço sobrando. Deixando quebrar, a
+   largura mínima passa a ser a da maior PALAVRA e a tabela cabe. */
+.tabela tbody th {
+  font: var(--fw-medium) var(--fs-body-sm) / var(--lh-body) var(--font-sans);
+  color: var(--text-strong);
+}
+
+/* ------------------------------------------------------- destaque e pendência */
+
+/* Caixa de contato e de aviso. Mesma linguagem do `.case` de sobre.module.css
+   — borda esquerda verde sobre cartão — para a página não introduzir um
+   componente visual novo. */
+.destaque {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 22px 26px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-left: 3px solid var(--hc-green-300);
+  border-radius: var(--radius-sm);
+}
+
+.destaque p {
+  margin: 0;
+  font: var(--type-body-sm);
+  color: var(--text-body);
+}
+
+/* Marcador dos campos que o cliente ainda precisa preencher (CNPJ, endereço).
+   Visualmente evidente de propósito: enquanto o texto estiver no ar com um
+   `[a preencher]`, ninguém deve conseguir não notar. */
+.pendente {
+  font: var(--type-mono);
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: #fff4d6;
+  border: 1px dashed #b4801a;
+  color: #6b4a06;
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------------------ índice */
+
+.indice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.indice a {
+  display: inline-block;
+  padding: 6px 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill, 999px);
+  font: var(--type-body-sm);
+  color: var(--text-body);
+  text-decoration: none;
+  transition: border-color 120ms, color 120ms;
+}
+
+.indice a:hover {
+  border-color: var(--hc-green-300);
+  color: var(--hc-green-600);
+}
+
+.indice a:focus-visible {
+  outline: 2px solid var(--hc-green-300);
+  outline-offset: 2px;
+}
+
+/* --------------------------------------------------------------- vigência */
+
+.vigencia {
+  margin: 0;
+  font: var(--type-body-sm);
+  color: var(--text-muted);
+}
+
+/* Links dentro do corpo: o texto cita e-mail e páginas internas com
+   frequência, e sem sublinhado eles se perdem num parágrafo cinza. */
+.bloco a,
+.destaque a {
+  color: var(--hc-green-600);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.bloco a:focus-visible,
+.destaque a:focus-visible {
+  outline: 2px solid var(--hc-green-300);
+  outline-offset: 2px;
+}
+
+/* Quebra de e-mail e URL longos: no telefone `contato@hcleanoil.com.br`
+   dentro de um item de lista estourava a caixa. */
+.bloco a,
+.destaque a,
+.lista a {
+  overflow-wrap: anywhere;
+}

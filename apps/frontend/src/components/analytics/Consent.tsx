@@ -158,9 +158,23 @@ export function Consent() {
 
   return (
     <div id="consent-faixa" ref={faixaRef} className={s.faixa} role="dialog" aria-label="Preferências de cookies" aria-live="polite">
+      {/* O link para a politica fica DENTRO do texto da faixa porque o
+          consentimento da LGPD tem de ser informado: quem escolhe precisa
+          poder ler antes o que sera coletado, e depois da escolha a faixa
+          nao volta. E um `<a>` simples, nao o `Link` do Next: a faixa e
+          client component carregado em toda pagina, e o prefetch do Link
+          baixaria a politica — uma pagina que quase ninguem abre — no
+          carregamento de todas elas.
+
+          Nada mais nesta faixa mudou: `aplicar()`, o momento do push e os
+          padroes `denied` do Consent Mode v2 seguem intocados. */}
       <p className={s.texto}>
         Usamos cookies para entender como o site é usado e para mostrar nossos
-        produtos a quem já demonstrou interesse. Você escolhe.
+        produtos a quem já demonstrou interesse. Você escolhe. Saiba mais na{' '}
+        <a className={s.link} href="/politica-de-privacidade">
+          Política de Privacidade
+        </a>
+        .
       </p>
       <div className={s.acoes}>
         <button type="button" className={s.secundario} onClick={() => escolher('essenciais')}>
