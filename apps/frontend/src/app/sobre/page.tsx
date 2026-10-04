@@ -12,13 +12,13 @@ import {
   CTABanner,
 } from '@/components/sections/Shared';
 import { Ornament, ornamentHost } from '@/components/sections/Ornament';
-import { caseStudies, proofPoints, site } from '@/data/site';
+import { caseStudies, proofPoints, site, anosDeCasa } from '@/data/site';
 import s from './sobre.module.css';
 
 export const metadata: Metadata = {
   title: 'Quem somos',
   description:
-    'A HCLEAN nasceu em 2004, após o acidente com o navio Vicuña em Paranaguá, e fabrica equipamentos para resposta a emergências ambientais há mais de 18 anos.',
+    `A HCLEAN nasceu em 2004, após o acidente com o navio Vicuña em Paranaguá, e fabrica equipamentos para resposta a emergências ambientais há mais de ${anosDeCasa} anos.`,
   alternates: { canonical: '/sobre' },
 };
 
@@ -28,7 +28,7 @@ export default function SobrePage() {
       <Hero>
         <HeroCopy>
           <Badge tone="inverse">Desde 2004</Badge>
-          <HeroTitle>Mais de 18 anos fabricando proteção ambiental</HeroTitle>
+          <HeroTitle>Mais de {anosDeCasa} anos fabricando proteção ambiental</HeroTitle>
           <HeroLead>
             A HCLEAN fabrica equipamentos para resposta a emergências ambientais,
             apoiando empresas e equipes operacionais em situações que exigem preparo,

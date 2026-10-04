@@ -14,6 +14,20 @@
  * de reuso foi removido das características.
  */
 
+/** Ano em que a HCLEAN começou, depois do acidente com o navio Vicuña. */
+export const ANO_FUNDACAO = 2004;
+
+/**
+ * Anos de casa, contados a partir da fundação.
+ *
+ * Era texto fixo — "mais de 18 anos" — herdado do site anterior, e já estava
+ * quatro anos defasado em cinco lugares diferentes, inclusive nos dados
+ * estruturados. Não chegava a ser falso, porque 22 é mais que 18, mas
+ * subestimava justamente a credencial mais forte do cliente. Calculado, o
+ * número nunca mais envelhece sozinho.
+ */
+export const anosDeCasa = new Date().getFullYear() - ANO_FUNDACAO;
+
 export const site = {
   name: 'HCLEAN',
   legalName: 'HCLEAN Equipamentos Ambientais Ltda',
@@ -25,7 +39,7 @@ export const site = {
   titleShort: 'Equipamentos de proteção ambiental',
   /* Até 160 caracteres: o que passa disso o Google trunca com reticências. */
   description:
-    'Há mais de 18 anos fabricando barreiras de contenção, absorventes, kits de emergência e tanques para resposta a emergências ambientais no Brasil.',
+    `Há mais de ${anosDeCasa} anos fabricando barreiras de contenção, absorventes, kits de emergência e tanques para resposta a emergências ambientais no Brasil.`,
   /* Canônico sem www. É esta URL que alimenta canonical, sitemap, Open Graph
      e JSON-LD: as duas formas servindo o mesmo conteúdo sem um canônico
      definido seriam conteúdo duplicado aos olhos do Google. O www redireciona

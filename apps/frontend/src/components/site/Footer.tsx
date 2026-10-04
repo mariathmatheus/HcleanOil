@@ -4,7 +4,7 @@ import { ContactLink } from '@/components/analytics/ContactLink';
 import { Icon } from '@/components/ui/Icon';
 import { Logo } from '@/components/ui/Logo';
 import { QuoteLink } from '@/components/quote/QuoteLink';
-import { site } from '@/data/site';
+import { site, anosDeCasa } from '@/data/site';
 import s from './Footer.module.css';
 
 import NerdResolveBadge from './NerdResolveBadge';
@@ -71,7 +71,7 @@ export function Footer() {
             <Logo height={32} tone="light" />
             <p className={s.blurb}>
               Equipamentos e soluções para resposta a emergências ambientais. Há mais
-              de 18 anos apoiando operações de contenção e absorção no Brasil.
+              de {anosDeCasa} anos apoiando operações de contenção e absorção no Brasil.
             </p>
             <div className={s.contactList}>
               <ContactLink

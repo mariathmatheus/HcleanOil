@@ -1,5 +1,5 @@
 import { ImageResponse } from 'next/og';
-import { site } from '@/data/site';
+import { site, anosDeCasa } from '@/data/site';
 
 /**
  * Imagem de compartilhamento padrão do site.
@@ -87,7 +87,7 @@ export default function OpengraphImage() {
             color: 'rgba(247,247,247,.82)',
           }}
         >
-          <span>+18 anos de fabricação</span>
+          <span>+{anosDeCasa} anos de fabricação</span>
           <span style={{ color: '#4FD68F' }}>·</span>
           <span>Barreiras · Absorventes · Kits · Tanques</span>
         </div>

@@ -16,7 +16,7 @@ import {
 } from '@/components/sections/Shared';
 import { VideoHero } from '@/components/sections/VideoHero';
 import { ProductCard } from '@/components/sections/ProductCard';
-import { categories, caseStudies, faq, pillars, products, site } from '@/data/site';
+import { categories, caseStudies, faq, pillars, products, site, anosDeCasa } from '@/data/site';
 import s from './home.module.css';
 
 export const metadata: Metadata = {
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
 
 /** Números exibidos dentro do hero, como no site anterior. */
 const heroStats = [
-  { icon: 'medal' as const, value: '18+', label: 'anos de experiência no mercado' },
+  { icon: 'medal' as const, value: `${anosDeCasa}+`, label: 'anos de experiência no mercado' },
   { icon: 'ruler' as const, value: '500K+', label: 'metros de barreira fabricados' },
   { icon: 'users' as const, value: '10K+', label: 'emergências atendidas com nossos equipamentos' },
 ];

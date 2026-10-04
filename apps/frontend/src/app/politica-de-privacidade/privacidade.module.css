@@ -78,6 +78,14 @@
   border-radius: var(--radius-sm);
 }
 
+/* O envelope recebe `tabindex="0"` no JSX para que a rolagem lateral exista
+   para o teclado. Como ele passa a ser parada de foco, precisa de anel
+   visível — mesmo par de tokens dos links desta página. */
+.tabelaEnvelope:focus-visible {
+  outline: 2px solid var(--hc-green-300);
+  outline-offset: 2px;
+}
+
 /* A tabela é o único bloco da página que não cabe na coluna de 72ch: MEDIDO,
    ela pede 734px e a coluna dá 693px a 1440, então rolava de lado numa tela
    que tem folga de sobra. Onde a janela permite, ela escapa da coluna de

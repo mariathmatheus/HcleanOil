@@ -245,7 +245,20 @@ export default function PoliticaDePrivacidadePage() {
                   orçamento não depende de consentimento, e dizer que depende seria
                   impreciso. Veja o que vale para cada caso:
                 </p>
-                <div className={s.tabelaEnvelope}>
+                {/* `tabindex={0}` e `role="group"`: o envelope rola de lado
+                    (no telefone esconde 372px dos 720px da tabela, a coluna
+                    "Base legal" inteira), e sem foco de teclado quem navega
+                    sem mouse não tinha como alcançar essa rolagem — a base
+                    legal de cada finalidade ficava inacessível. axe-core
+                    acusava `scrollable-region-focusable` (serious). O `role`
+                    com `aria-label` dá nome ao que recebe o foco, para o
+                    leitor de tela não anunciar um grupo sem rótulo. */}
+                <div
+                  className={s.tabelaEnvelope}
+                  tabIndex={0}
+                  role="group"
+                  aria-label="Base legal por finalidade (tabela rolável)"
+                >
                   <table className={s.tabela}>
                     <thead>
                       <tr>
