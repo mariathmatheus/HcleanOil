@@ -16,12 +16,17 @@ import { z } from 'zod';
  * Então o que não é segredo vive em `.env.producao`, versionado, e o `.env`
  * guarda só o que não pode ser publicado.
  *
- * `.env.producao` vem primeiro e com `override`, de propósito: o `.env` de
- * cada servidor já existia antes desta separação e carrega valores antigos
- * dos mesmos campos. Se o `.env` vencesse, um `git pull` continuaria não
- * corrigindo nada — que é exatamente o problema que esta separação existe
- * para resolver. Quem precisa de valor diferente numa máquina define a
- * variável no ambiente, que vence os dois.
+ * `.env.producao` vence o `.env`, de propósito: o `.env` de cada servidor já
+ * existia antes desta separação e carrega valores antigos dos mesmos campos.
+ * Se o `.env` vencesse, um `git pull` continuaria não corrigindo nada — que é
+ * exatamente o problema que esta separação existe para resolver.
+ *
+ * Mas a variável de ambiente vence os dois, e isso não é detalhe de estilo.
+ * O `override` cego do dotenv sobrescrevia até o que veio do shell: quem
+ * subisse o serviço com `MAIL_TO=caixa-de-teste` para testar acabava
+ * disparando e-mail para a caixa real do cliente, porque o arquivo vencia a
+ * intenção explícita de quem rodou o comando. Preservar o que já está em
+ * `process.env` é o que torna um teste isolado possível.
  */
 /* Os caminhos saem da localização deste módulo, e não do diretório de
    trabalho: dentro do container o processo sobe de `/app` com o código em
@@ -37,7 +42,14 @@ const candidatos = [
 
 const encontrado = candidatos.find((caminho) => existsSync(caminho));
 if (encontrado) {
+  /* Guarda o que o ambiente já definiu ANTES de deixar o arquivo sobrescrever,
+     e devolve depois. O dotenv só oferece `override` tudo-ou-nada: sem isto,
+     o arquivo venceria até uma variável passada na linha de comando. */
+  const doAmbiente = { ...process.env };
   carregarEnv({ path: encontrado, override: true });
+  for (const [chave, valor] of Object.entries(doAmbiente)) {
+    if (valor !== undefined) process.env[chave] = valor;
+  }
 } else {
   /* Não interrompe: em desenvolvimento o `.env` sozinho basta. Mas avisa alto,
      porque em produção este arquivo ausente significa configuração velha

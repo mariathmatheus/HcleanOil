@@ -1,5 +1,36 @@
 import { z } from 'zod';
 
+/*
+ * Mensagens de erro em português, na origem.
+ *
+ * Cada campo já trazia um texto próprio no `.min()`, mas isso cobre só o
+ * caminho em que o valor chega e é curto demais. Campo ausente, tipo errado
+ * ou texto longo demais caíam no padrão do Zod, em inglês — e a rota devolve
+ * essa string direto para a tela. O formulário tem guarda no cliente, então
+ * um visitante comum não chega lá; qualquer outro consumidor da API, sim.
+ *
+ * Traduzir no mapa de erros pega todos os casos de uma vez, inclusive os que
+ * ninguém lembrou de anotar.
+ */
+z.setErrorMap((issue, ctx) => {
+  if (issue.code === z.ZodIssueCode.invalid_type) {
+    if (issue.received === 'undefined' || issue.received === 'null') {
+      return { message: 'Campo obrigatório.' };
+    }
+    return { message: 'Formato inválido.' };
+  }
+  if (issue.code === z.ZodIssueCode.too_big && issue.type === 'string') {
+    return { message: `Use no máximo ${issue.maximum} caracteres.` };
+  }
+  if (issue.code === z.ZodIssueCode.too_small && issue.type === 'string') {
+    return { message: `Use pelo menos ${issue.minimum} caracteres.` };
+  }
+  if (issue.code === z.ZodIssueCode.invalid_string && issue.validation === 'email') {
+    return { message: 'Informe um e-mail válido.' };
+  }
+  return { message: ctx.defaultError };
+});
+
 /**
  * Validação do formulário de orçamento. Espelha os campos do site; tudo que
  * chega de fora passa por aqui antes de virar e-mail.

@@ -247,8 +247,13 @@ export async function enviarPropostaAutomatica(
   await sendMail({
     to: data.email,
     /* Cópia oculta, não `cc`: em cópia visível o cliente enxerga a caixa
-       interna, e um "responder a todos" dele vira ruído na equipe. */
-    bcc: env.MAIL_TO,
+       interna, e um "responder a todos" dele vira ruído na equipe.
+
+       Soma MAIL_BCC à caixa comercial em vez de substituí-la. Antes era só
+       `env.MAIL_TO`, o que sobrescrevia o padrão do `sendMail` e deixava a
+       proposta como a única mensagem que não chegava às cópias configuradas —
+       contradizendo o próprio `.env.producao`, que promete cópia de tudo. */
+    bcc: [env.MAIL_TO, env.MAIL_BCC].filter(Boolean).join(','),
     /* O corpo diz "é só responder a este e-mail", então a resposta precisa
        chegar na caixa comercial — não no remetente de disparo. */
     replyTo: env.MAIL_TO,

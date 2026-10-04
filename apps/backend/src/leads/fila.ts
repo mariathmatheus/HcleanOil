@@ -19,6 +19,7 @@
  * repetir encheria a caixa do cliente com a mesma cotação. Aqui é o contrário:
  * o arquivo só sai do disco depois de o servidor SMTP aceitar a mensagem.
  */
+import { readdirSync } from 'node:fs';
 import { mkdir, readdir, readFile, writeFile, unlink, stat, rename } from 'node:fs/promises';
 import { join } from 'node:path';
 import { env } from '../lib/env.js';
@@ -74,12 +75,30 @@ const RECUOS_MS = [15_000, 60_000, 5 * 60_000, 30 * 60_000];
 /** Timers vivos neste processo, para o encerramento poder limpá-los. */
 const timers = new Map<string, NodeJS.Timeout>();
 
-/** Quantos leads estão gravados e ainda não foram aceitos pelo SMTP. */
-let pendentes = 0;
-
-/** Lido pelo /health: sem isso o container ficava "saudável" recusando lead. */
+/**
+ * Quantos leads estão gravados e ainda não foram aceitos pelo SMTP.
+ *
+ * Contado no disco a cada chamada, e não num contador em memória. O contador
+ * derivava: os dois caminhos de descarte apagavam o arquivo sem decrementar, e
+ * a retomada na subida somava por cima do que já havia. Depois do primeiro
+ * descarte ele nunca mais voltava a zero.
+ *
+ * Isso corrompia justamente o alarme que esta fila existe para alimentar — o
+ * /health diz que fila sustentadamente acima de zero merece atenção, e um
+ * número permanentemente positivo ensina o operador a ignorá-lo. Era repetir,
+ * em outro lugar, o erro que criou todo este desenho: a falha existia e
+ * ninguém a enxergava.
+ *
+ * Ler o diretório custa uma syscall por consulta ao /health, o que é barato
+ * perto de um alarme que mente.
+ */
 export function pendentesNaFila(): number {
-  return pendentes;
+  try {
+    return readdirSync(PASTA).filter((nome) => nome.endsWith('.json')).length;
+  } catch {
+    /* Pasta ainda não criada: não há lead pendente. */
+    return 0;
+  }
 }
 
 const caminhoDe = (leadId: string) => join(PASTA, `${leadId}.json`);
@@ -110,7 +129,6 @@ export async function gravarLead(lead: {
   await writeFile(temporario, JSON.stringify(item), 'utf8');
   await rename(temporario, caminhoDe(item.leadId));
 
-  pendentes++;
 }
 
 /** Remonta a notificação a partir do arquivo e manda para a caixa comercial. */
@@ -143,7 +161,6 @@ export async function tentarEnviar(item: LeadPendente): Promise<boolean> {
   try {
     await notificar(item);
     await unlink(caminhoDe(item.leadId)).catch(() => {});
-    pendentes = Math.max(0, pendentes - 1);
     timers.delete(item.leadId);
     if (item.tentativas > 0) {
       console.log(
@@ -235,7 +252,6 @@ export async function retomarPendentes(): Promise<void> {
         continue;
       }
 
-      pendentes++;
       /* Reinicia o contador de tentativas: as do processo anterior já
          esgotaram o recuo, e esta subida é uma nova chance com a escada
          inteira disponível. O criadoEm é que limita o total. */
@@ -278,7 +294,6 @@ export async function limparVencidos(): Promise<number> {
       if (Date.now() - info.mtimeMs > VALIDADE_MS) {
         await unlink(caminho);
         removidos++;
-        pendentes = Math.max(0, pendentes - 1);
       }
     } catch {
       /* Outro processo pode ter removido no meio do caminho. */
