@@ -1,0 +1,206 @@
+# Verifica, publica e confere que publicou.
+#
+# Existe por causa de dois incidentes reais. No primeiro, uma correção ficou
+# commitada e enviada por um dia inteiro sem ninguém rodar o deploy, enquanto
+# o problema que ela resolvia seguia no ar. No segundo, o `git pull` abortou
+# em silêncio no servidor, saiu com código 0 e não atualizou nada.
+#
+# Daí a terceira etapa não ser opcional: publicar sem conferir que publicou é
+# o que deixou os dois passarem despercebidos.
+
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  # Permite republicar sem precisar de um commit novo, quando algo no servidor
+  # precisou ser mexido à mão.
+  workflow_dispatch:
+
+# Duas publicações ao mesmo tempo no mesmo servidor se atropelariam. A segunda
+# espera a primeira terminar, em vez de ser cancelada: cada commit em `main`
+# precisa chegar ao ar.
+concurrency:
+  group: deploy-producao
+  cancel-in-progress: false
+
+jobs:
+  verificar:
+    name: Typecheck e build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # Os dois apps têm lockfile próprio e não compartilham node_modules.
+      - name: Instala o backend
+        working-directory: apps/backend
+        run: npm ci
+
+      - name: Instala o frontend
+        working-directory: apps/frontend
+        run: npm ci
+
+      - name: Typecheck do backend
+        working-directory: apps/backend
+        run: npx tsc --noEmit
+
+      - name: Typecheck do frontend
+        working-directory: apps/frontend
+        run: npx tsc --noEmit
+
+      - name: Build do backend
+        working-directory: apps/backend
+        run: npm run build
+
+      # O build do frontend é o que pega erro que o typecheck não vê — um
+      # comentário mal fechado no next.config.mjs já derrubou a compilação
+      # inteira sem o tsc reclamar.
+      - name: Build do frontend
+        working-directory: apps/frontend
+        env:
+          NEXT_PUBLIC_API_URL: https://hcleanoil.com.br
+        run: npm run build
+
+  publicar:
+    name: Publicar no servidor
+    needs: verificar
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prepara a chave
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          # `ssh-keyscan` em vez de desligar a verificação: aceitar qualquer
+          # host abriria espaço para alguém se passar pelo servidor.
+          ssh-keyscan -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
+
+      # O script remoto vai entre aspas SIMPLES, e isso não é estilo. Ele passa
+      # por dois shells, o do runner e o do servidor. Entre aspas duplas, o do
+      # runner expandiria o que encontrasse pelo caminho — `$(...)` e o acento
+      # grave de um comentário virariam substituição de comando antes de a
+      # linha sair daqui. Aspas simples entregam o texto literal ao servidor.
+      #
+      # Heredoc seria mais legível e foi tentado: não serve. `<<'FIM'` exige o
+      # terminador na coluna 0, que quebra o bloco `run: |` do YAML, e `<<-`
+      # só remove TAB, que este arquivo não usa. Deixado indentado, o heredoc
+      # não fecha, o shell apenas avisa, sai com 0 e manda a palavra do
+      # terminador como comando — falha silenciosa, justamente o que este
+      # arquivo existe para impedir.
+      - name: Atualiza e sobe
+        run: |
+          ssh -i ~/.ssh/id_ed25519 \
+            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
+            'set -e
+             cd /opt/hclean
+
+             # O git pull aborta com código 0 quando há arquivo sujo na
+             # árvore, atualizando nada e sem avisar. Foi assim que um deploy
+             # não aconteceu. Aqui a atualização é forçada contra o remoto.
+             git fetch origin main
+             git reset --hard origin/main
+
+             # O commit entra no container e sai no /health, para a etapa
+             # seguinte poder provar que foi este código que subiu.
+             export COMMIT_SHA=${{ github.sha }}
+             docker compose up -d --build
+
+             # Imagem antiga acumulada enche o disco do servidor com o tempo.
+             docker image prune -f'
+
+  conferir:
+    name: Conferir que publicou
+    needs: publicar
+    runs-on: ubuntu-latest
+    steps:
+      # O container leva alguns segundos para responder depois de subir.
+      - name: Espera o site responder
+        run: |
+          for i in $(seq 1 30); do
+            if curl -fsS -o /dev/null \
+                 -H "User-Agent: Mozilla/5.0" -H "Accept: text/html" \
+                 https://hcleanoil.com.br/; then
+              echo "site respondendo"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "o site não respondeu em 150s"
+          exit 1
+
+      # As rotas que mais importam: a home, o catálogo, uma página de produto
+      # e a política — esta última porque sua ausência reprovava os anúncios.
+      - name: Rotas principais
+        run: |
+          falhou=0
+          for r in / /produtos /sobre /produtos/kit-sopep /politica-de-privacidade; do
+            codigo=$(curl -s -o /dev/null -w '%{http_code}' \
+              -H "User-Agent: Mozilla/5.0" -H "Accept: text/html" \
+              "https://hcleanoil.com.br$r")
+            echo "$codigo $r"
+            [ "$codigo" = "200" ] || falhou=1
+          done
+          exit $falhou
+
+      # O formulário já ficou respondendo sucesso enquanto nenhum e-mail saía,
+      # porque o lead passou a ser gravado antes do envio. Só o /health revela.
+      - name: SMTP e fila de leads
+        run: |
+          saude=$(curl -fsS https://hcleanoil.com.br/api/health)
+          echo "$saude"
+          echo "$saude" | grep -q '"smtp":"ok"' || {
+            echo "SMTP fora: o formulário aceita lead mas nada é enviado"
+            exit 1
+          }
+
+      # Os endereços do site antigo são o que o Google tem indexado. Se
+      # voltarem a dar 404, os anúncios são reprovados de novo.
+      - name: Redirects do site anterior
+        run: |
+          destino=$(curl -sL -o /dev/null -w '%{url_effective}' \
+            -A "AdsBot-Google" https://hcleanoil.com.br/home/products/kits)
+          echo "/home/products/kits -> $destino"
+          [ "$destino" = "https://hcleanoil.com.br/produtos/kit-sopep" ]
+
+      # A prova de que o código NOVO chegou ao ar, e não só de que o site está
+      # de pé. Esta é a etapa que teria pegado o deploy silencioso: o site
+      # respondia 200 em tudo, com o código de ontem.
+      #
+      # A comparação é com o commit, não com um trecho do HTML. Procurar uma
+      # marca na página (um preconnect, uma classe) acusaria falso no dia em
+      # que alguém mexesse nela por outro motivo — e, pior, passaria no dia em
+      # que a marca já existisse na versão antiga.
+      - name: O código novo chegou?
+        run: |
+          esperado='${{ github.sha }}'
+          # O container acabou de subir; o /health pode levar um instante.
+          for i in $(seq 1 20); do
+            publicado=$(curl -fsS https://hcleanoil.com.br/api/health \
+              | grep -o '"versao":"[^"]*"' | cut -d'"' -f4) || publicado=''
+            [ -n "$publicado" ] && break
+            sleep 5
+          done
+
+          echo "enviado:   $esperado"
+          echo "publicado: $publicado"
+
+          if [ "$publicado" = "$esperado" ]; then
+            echo "o código novo está no ar"
+            exit 0
+          fi
+
+          # Sem o campo: imagem anterior à introdução dele, ou COMMIT_SHA não
+          # chegou ao container. Avisa sem reprovar — o resto já foi conferido.
+          if [ -z "$publicado" ] || [ "$publicado" = "desconhecida" ]; then
+            echo "::warning::o /health não informou a versão; não foi possível"\
+                 "confirmar que este commit chegou ao ar"
+            exit 0
+          fi
+
+          echo "::error::o servidor está servindo outro commit: o deploy não"\
+               "foi aplicado"
+          exit 1

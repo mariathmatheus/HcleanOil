@@ -49,6 +49,16 @@ app.get(['/health', '/api/health'], (_req, res) => {
     ...(smtp.detalhe ? { smtpErro: smtp.detalhe } : {}),
     ...(smtp.verificadoEm ? { smtpVerificadoEm: smtp.verificadoEm } : {}),
     leadsPendentes: pendentesNaFila(),
+    /* O commit que está no ar. Chega do `docker compose` na subida do
+       container (não é embutido na imagem), para que a publicação automática
+       possa comparar o que enviou com o que o servidor de fato está servindo.
+       Já houve deploy que não aconteceu em silêncio — o `git pull` abortou,
+       saiu com código 0, e o site seguiu respondendo normalmente com o código
+       velho. Sem este campo, só se descobre olhando o sintoma de novo.
+
+       `desconhecida` em desenvolvimento, e também numa imagem anterior a este
+       campo: a conferência trata esse caso como aviso, não como reprovação. */
+    versao: process.env.COMMIT_SHA ?? 'desconhecida',
   });
 });
 app.use('/api', contatoRouter);

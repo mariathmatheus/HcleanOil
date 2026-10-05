@@ -43,6 +43,11 @@ services:
       # Container de medição server-side, já configurado na zona do cliente.
       SGTM_URL: https://api.hcleanoil.com.br
       PROPOSTAS_DIR: /app/propostas
+      # O commit publicado, exposto no /health. A publicação automática
+      # compara o que enviou com o que o servidor responde: é o que detecta
+      # um deploy que não aconteceu, caso que já ocorreu em silêncio.
+      # Vazio em desenvolvimento, onde a pergunta não faz sentido.
+      COMMIT_SHA: ${COMMIT_SHA:-}
     volumes:
       # A numeração das propostas não pode reiniciar a cada deploy.
       - propostas:/app/propostas
