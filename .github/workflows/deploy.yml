@@ -157,6 +157,32 @@ jobs:
             exit 1
           }
 
+      # O /health confere a si mesmo, mas não confere de ONDE a configuração
+      # veio. O `.env` do servidor não é versionado e entra pelo `env_file` do
+      # compose como variável de ambiente — que vence o `.env.producao`. Ou
+      # seja: um valor errado lá é invisível aqui e `git pull` nunca o corrige.
+      #
+      # Foi assim que um contorno de 30/09 (SMTP_HOST apontado para o alvo do
+      # MX, porque o apelido estava atrás do proxy da Cloudflare) sobreviveu ao
+      # fim da própria causa. O nome virou NXDOMAIN, e o formulário voltou a
+      # aceitar lead sem mandar e-mail — em silêncio, porque ninguém relê um
+      # arquivo que não aparece em diff nenhum.
+      #
+      # Esta etapa não lê o arquivo (não temos acesso a ele daqui). Ela observa
+      # o sintoma: se o SMTP está resolvendo, o host configurado existe.
+      - name: O host de e-mail configurado existe?
+        run: |
+          saude=$(curl -fsS https://hcleanoil.com.br/api/health)
+          erro=$(printf '%s' "$saude" | grep -o '"smtpErro":"[^"]*"' | cut -d'"' -f4)
+          case "$erro" in
+            *ENOTFOUND*|*getaddrinfo*)
+              echo "::error::o SMTP_HOST do servidor aponta para um nome que"\
+                   "não resolve ($erro). O valor está no .env da VPS, que não"\
+                   "é versionado; o deploy não o atualiza."
+              exit 1
+              ;;
+          esac
+
       # Os endereços do site antigo são o que o Google tem indexado. Se
       # voltarem a dar 404, os anúncios são reprovados de novo.
       - name: Redirects do site anterior

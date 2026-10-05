@@ -95,6 +95,33 @@ const schema = z.object({
     .optional()
     .transform((v) => (v?.trim() ? v.trim() : undefined)),
 
+  /**
+   * Endereços alternativos do MESMO servidor de e-mail, tentados em ordem
+   * quando o `SMTP_HOST` falha.
+   *
+   * Existe porque o envio ficou fora por um nome de DNS que deixou de existir.
+   * O `SMTP_HOST` da VPS apontava para o alvo do MX — contorno de quando o
+   * apelido do servidor estava atrás do proxy da Cloudflare, que não
+   * encaminha SMTP. Quando esse nome virou NXDOMAIN, o formulário voltou a
+   * aceitar lead sem mandar e-mail, e o valor vivia num `.env` não versionado
+   * que nenhum `git pull` corrige.
+   *
+   * Um nome só é um ponto único de falha numa zona que terceiros editam. Com
+   * a alternativa, o envio sobrevive à perda de um registro — e o IP literal
+   * no fim da lista é o único que não depende de DNS nenhum.
+   *
+   * O certificado continua sendo conferido contra `SMTP_SERVERNAME`, então a
+   * senha não viaja para um servidor que não provou ser quem diz ser.
+   */
+  SMTP_HOST_ALTERNATIVOS: z
+    .string()
+    .optional()
+    .transform((v) =>
+      (v ?? '')
+        .split(',')
+        .map((h) => h.trim())
+        .filter(Boolean),
+    ),
   SMTP_USER: z.string().min(1, 'SMTP_USER é obrigatório'),
   SMTP_PASS: z.string().min(1, 'SMTP_PASS é obrigatório'),
 

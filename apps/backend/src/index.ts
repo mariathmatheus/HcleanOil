@@ -48,6 +48,11 @@ app.get(['/health', '/api/health'], (_req, res) => {
     smtp: smtp.estado,
     ...(smtp.detalhe ? { smtpErro: smtp.detalhe } : {}),
     ...(smtp.verificadoEm ? { smtpVerificadoEm: smtp.verificadoEm } : {}),
+    /* Por qual endereço o e-mail está saindo. Aparece porque o envio pode
+       estar funcionando por um host alternativo enquanto o configurado está
+       quebrado — dá "ok" sem estar tudo certo, e a vigilância precisa ver a
+       diferença para avisar antes de a alternativa cair também. */
+    ...(smtp.host ? { smtpHost: smtp.host } : {}),
     leadsPendentes: pendentesNaFila(),
     /* O commit que está no ar. Chega do `docker compose` na subida do
        container (não é embutido na imagem), para que a publicação automática

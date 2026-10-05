@@ -7,7 +7,7 @@
  * não tinha como mostrar que todo lead estava sendo recusado. O erro existia e
  * ninguém o via.
  */
-import { verifyConnection } from './mailer.js';
+import { verifyConnection, hostDeEnvio, esquecerTransporte } from './mailer.js';
 
 type EstadoSmtp = 'desconhecido' | 'ok' | 'falha';
 
@@ -15,8 +15,13 @@ let estado: EstadoSmtp = 'desconhecido';
 let detalhe: string | undefined;
 let verificadoEm: string | undefined;
 
-export function estadoSmtp(): { estado: EstadoSmtp; detalhe?: string; verificadoEm?: string } {
-  return { estado, detalhe, verificadoEm };
+export function estadoSmtp(): {
+  estado: EstadoSmtp;
+  detalhe?: string;
+  verificadoEm?: string;
+  host?: string;
+} {
+  return { estado, detalhe, verificadoEm, host: hostDeEnvio() ?? undefined };
 }
 
 /**
@@ -28,6 +33,11 @@ export function estadoSmtp(): { estado: EstadoSmtp; detalhe?: string; verificado
  */
 export async function conferirSmtp(): Promise<EstadoSmtp> {
   try {
+    /* Descarta o transporte antes de reconferir. Sem isto a reconferência
+       apenas revalidaria o host que já está em cache: um envio que caiu para
+       o endereço alternativo nunca voltaria ao configurado, e o contorno
+       viraria permanente sem ninguém perceber. */
+    esquecerTransporte();
     await verifyConnection();
     estado = 'ok';
     detalhe = undefined;

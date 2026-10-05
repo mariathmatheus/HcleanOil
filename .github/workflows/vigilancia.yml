@@ -1,0 +1,163 @@
+# Vigia o site e o envio de e-mail de forma contínua, sem depender de deploy.
+#
+# Existe por causa de um incidente que o deploy não teria pego: o SMTP caiu
+# sozinho, sem ninguém publicar nada. O `SMTP_HOST` do servidor apontava para
+# o alvo do MX — um contorno de 30/09, de quando o apelido do servidor de
+# e-mail estava atrás do proxy da Cloudflare. Esse nome virou NXDOMAIN, e o
+# formulário voltou a aceitar lead sem mandar e-mail.
+#
+# O site seguiu respondendo 200 em tudo. O lead não se perdeu: vai para a fila
+# em disco e é reenviado. O que faltou foi alguém SABER, e foi o silêncio que
+# deixou o problema durar.
+#
+# Por isso a vigilância é separada do deploy: o que quebra sozinho precisa de
+# quem olhe sozinho.
+
+name: Vigilancia
+
+on:
+  schedule:
+    # De 15 em 15 minutos. O agendamento do GitHub atrasa sob carga — não é
+    # relógio de precisão, e para "o e-mail está saindo?" isso basta.
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+# Uma verificação por vez; sob atraso do agendador, duas podiam coincidir.
+concurrency:
+  group: vigilancia
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  conferir:
+    name: O site e o e-mail estao de pe?
+    runs-on: ubuntu-latest
+    steps:
+      # Cada verificação registra seu próprio veredito e NÃO interrompe o job.
+      # Parar na primeira falha esconderia as outras, e o relato viria pela
+      # metade — justamente quando se quer o quadro inteiro.
+      - name: Verifica
+        id: v
+        run: |
+          problemas=''
+          anota() { problemas="${problemas}- $1"$'\n'; echo "FALHA: $1"; }
+
+          # --- o site responde, e nas páginas que sustentam os anúncios
+          for r in / /produtos /sobre /produtos/kit-sopep /politica-de-privacidade; do
+            codigo=$(curl -s -o /dev/null -w '%{http_code}' --max-time 25 \
+              -H 'User-Agent: Mozilla/5.0' -H 'Accept: text/html' \
+              "https://hcleanoil.com.br$r" || echo 000)
+            echo "$codigo $r"
+            [ "$codigo" = '200' ] || anota "a página \`$r\` respondeu \`$codigo\` (esperado 200)"
+          done
+
+          # --- o /health, que é onde o envio de e-mail aparece
+          saude=$(curl -fsS --max-time 25 https://hcleanoil.com.br/api/health || echo '')
+          echo "$saude"
+          if [ -z "$saude" ]; then
+            anota 'a API de saúde não respondeu'
+          else
+            smtp=$(printf '%s' "$saude" | grep -o '"smtp":"[^"]*"' | cut -d'"' -f4)
+            erro=$(printf '%s' "$saude" | grep -o '"smtpErro":"[^"]*"' | cut -d'"' -f4)
+            fila=$(printf '%s' "$saude" | grep -o '"leadsPendentes":[0-9]*' | cut -d: -f2)
+
+            # O formulário responde sucesso mesmo com o SMTP fora, de propósito:
+            # o lead é gravado e reenviado depois. Mas ninguém o LÊ enquanto
+            # está na fila, então SMTP fora é urgência comercial.
+            [ "$smtp" = 'ok' ] || anota "o envio de e-mail está fora: \`${smtp:-sem resposta}\` ${erro:+(\`$erro\`)}"
+
+            case "$erro" in
+              *ENOTFOUND*|*getaddrinfo*)
+                anota 'o `SMTP_HOST` do servidor aponta para um nome que não resolve. O valor vive no `.env` da VPS, que não é versionado — `git pull` não corrige.'
+                ;;
+            esac
+
+            # Envio funcionando por um endereço alternativo conta como
+            # problema, mesmo com o SMTP "ok". O contorno existe para o e-mail
+            # não parar, não para a configuração errada virar permanente — se
+            # ninguém for avisado, a alternativa cai um dia e aí não há plano B.
+            host=$(printf '%s' "$saude" | grep -o '"smtpHost":"[^"]*"' | cut -d'"' -f4)
+            if [ -n "$host" ] && [ "$host" != 'mail.hcleanoil.com.br' ]; then
+              anota "o e-mail está saindo por \`$host\`, e não pelo host configurado. O envio foi salvo pelo contorno, mas o \`SMTP_HOST\` do \`.env\` da VPS precisa ser corrigido."
+            fi
+
+            # Lead preso na fila é pedido de cliente que ninguém leu ainda.
+            if [ -n "$fila" ] && [ "$fila" -gt 0 ] 2>/dev/null; then
+              anota "há \`$fila\` lead(s) na fila aguardando envio"
+            fi
+          fi
+
+          # --- os endereços do site antigo, que o Google tem indexado
+          destino=$(curl -sL -o /dev/null --max-time 25 -w '%{url_effective}' \
+            -A 'AdsBot-Google' https://hcleanoil.com.br/home/products/kits || echo '')
+          echo "redirect -> $destino"
+          [ "$destino" = 'https://hcleanoil.com.br/produtos/kit-sopep' ] \
+            || anota "o redirect de \`/home/products/kits\` foi para \`${destino:-nada}\`; se der 404 os anúncios são reprovados"
+
+          # --- o certificado, que expira sozinho e derruba tudo de uma vez.
+          # Por `openssl` e não pelo `expire date` do curl: aquele campo só sai
+          # em curl compilado com OpenSSL e desaparece em silêncio nos outros.
+          # Uma verificação que não verifica nada é pior que nenhuma, porque
+          # passa a impressão de cobertura.
+          fim=$(timeout 25 openssl s_client -connect hcleanoil.com.br:443 \
+                  -servername hcleanoil.com.br </dev/null 2>/dev/null \
+                | openssl x509 -noout -enddate 2>/dev/null | cut -d= -f2)
+          if [ -n "$fim" ]; then
+            resta=$(( ( $(date -d "$fim" +%s) - $(date +%s) ) / 86400 ))
+            echo "certificado expira em $resta dia(s) ($fim)"
+            [ "$resta" -gt 10 ] || anota "o certificado TLS expira em \`$resta\` dia(s)"
+          else
+            anota 'nao foi possivel ler a validade do certificado TLS'
+          fi
+
+          {
+            echo 'problemas<<FIM'
+            printf '%s' "$problemas"
+            echo 'FIM'
+          } >> "$GITHUB_OUTPUT"
+
+      # Uma issue aberta por vez, atualizada enquanto o problema durar. Abrir
+      # uma por verificação encheria o repositório de 96 issues por dia e o
+      # aviso viraria ruído — que é como um alerta deixa de ser lido.
+      - name: Abre ou atualiza o alerta
+        if: steps.v.outputs.problemas != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PROBLEMAS: ${{ steps.v.outputs.problemas }}
+          EXECUCAO: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          corpo=$(printf '%s\n\n%s\n\n%s\n' \
+            'A vigilância automática encontrou problema em produção:' \
+            "$PROBLEMAS" \
+            "Verificado em $(date -u '+%d/%m/%Y %H:%M UTC') · [execução]($EXECUCAO)")
+
+          existente=$(gh issue list --label vigilancia --state open \
+            --json number --jq '.[0].number // empty')
+
+          if [ -n "$existente" ]; then
+            gh issue comment "$existente" --body "$corpo"
+          else
+            gh label create vigilancia --color B60205 \
+              --description 'Alerta automatico de producao' 2>/dev/null || true
+            gh issue create --label vigilancia \
+              --title 'Producao com problema' --body "$corpo"
+          fi
+
+      # Fecha sozinha quando o problema passa, para a issue aberta significar
+      # sempre "tem coisa quebrada agora".
+      - name: Fecha o alerta quando normaliza
+        if: steps.v.outputs.problemas == ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for n in $(gh issue list --label vigilancia --state open --json number --jq '.[].number'); do
+            gh issue comment "$n" --body 'Normalizado: a verificação passou em tudo.'
+            gh issue close "$n"
+          done
+
+      - name: Falha para marcar a execução
+        if: steps.v.outputs.problemas != ''
+        run: exit 1
