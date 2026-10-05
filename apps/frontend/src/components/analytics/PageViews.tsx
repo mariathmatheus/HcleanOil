@@ -40,28 +40,36 @@ export function PageViews() {
       return;
     }
 
-    /* As UTMs vão junto em cada troca de página, e precisam ir nos DOIS
-       lugares.
+    /* A UTM volta para a BARRA DE ENDEREÇO, e não só para dentro do evento.
+       Esta ordem importa: reescrever a URL antes de empurrar o evento.
 
-       No ENDEREÇO porque é de lá que o GA4 tira a atribuição: ele lê origem,
-       mídia e campanha do parâmetro `dl`, não de campos soltos no evento.
-       Como as UTMs chegam só na URL do primeiro acesso e somem na primeira
-       navegação interna — o App Router troca a rota sem recarregar —, da
-       segunda página em diante o endereço ia limpo e a visita era contada
-       como tráfego direto. Foi o que aconteceu: medido em produção, o `dl`
-       da segunda página vinha sem nenhum parâmetro.
+       A tentativa anterior mandava os parâmetros como campos do
+       `page_view_spa` e um `page_location` corrigido. Não bastou, e foi
+       medido: a tag do GA4 monta o endereço que reporta a partir de
+       `window.location.href` e ignora o que mandamos. Com a barra limpa, a
+       segunda página em diante contava como tráfego direto.
 
-       Nos CAMPOS porque uma tag do container pode ler de lá, e porque é o
-       que viaja junto do lead para a atribuição server-side.
+       Reescrevendo a URL de verdade, o endereço passa a estar certo para
+       todo mundo que o lê — o container, uma tag futura, o visitante que
+       copia o link e o relatório de página de entrada por conversão. Deixa
+       de depender de alguém configurar a leitura do campo certo.
 
-       Os dois vêm do que foi guardado na chegada, com prioridade para o que
-       estiver na URL atual. */
+       `replaceState` e não `pushState`: trocar a URL não é um passo novo de
+       navegação, e empilhar entradas faria o botão "voltar" percorrer a mesma
+       página várias vezes. */
+    const comCampanha = enderecoComCampanha();
+    if (comCampanha && comCampanha !== window.location.href) {
+      window.history.replaceState(window.history.state, '', comCampanha);
+    }
+
+    /* Os campos soltos continuam: uma tag do container pode ler de lá, e é o
+       que viaja junto do lead para a atribuição server-side. */
     const campanha = identificadoresDeCampanha();
 
     enviarEvento({
       event: 'page_view_spa',
       page_path: pathname,
-      page_location: enderecoComCampanha(),
+      page_location: window.location.href,
       page_title: document.title,
       ...campanha,
     });
