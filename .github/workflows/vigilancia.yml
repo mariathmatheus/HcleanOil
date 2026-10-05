@@ -36,6 +36,13 @@ jobs:
     name: O site e o e-mail estao de pe?
     runs-on: ubuntu-latest
     steps:
+      # O `gh issue` precisa de repositório git para descobrir onde criar a
+      # issue; sem isto ele falha com "not a git repository". Só os metadados
+      # interessam, então um clone raso basta e mantém a verificação rápida.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
       # Cada verificação registra seu próprio veredito e NÃO interrompe o job.
       # Parar na primeira falha esconderia as outras, e o relato viria pela
       # metade — justamente quando se quer o quadro inteiro.
