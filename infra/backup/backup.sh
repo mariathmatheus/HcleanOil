@@ -65,3 +65,14 @@ find "$DESTINO" -name '*.parcial' -type f -mtime +1 -delete
 # reclamar quando parar de rodar. Backup que falha em silencio e o caso que
 # deixa a pessoa descobrir no pior momento.
 date -u '+%Y-%m-%dT%H:%M:%SZ' > "$DESTINO/ultimo-ok.txt"
+
+# Uma vez por semana, manda a copia para fora do servidor. Diario encheria a
+# caixa comercial, e ruido e o que faz as pessoas pararem de olhar.
+#
+# `|| true`: falha no envio NAO invalida o backup. O arquivo em disco ja esta
+# gravado e conferido; nao poder mandar por e-mail e um problema menor, e
+# derrubar o backup por causa dele seria trocar o certo pelo duvidoso.
+if [ "${ENVIAR_SEMANAL:-1}" = '1' ] && [ "$(date -u +%u)" = '7' ]; then
+  echo '[backup] domingo: enviando copia por e-mail'
+  docker compose exec -T backend node scripts/enviar-backup.mjs     "/backups/$(basename "$ARQUIVO")" ||     echo '[backup] o envio por e-mail falhou; o backup em disco esta ok' >&2
+fi

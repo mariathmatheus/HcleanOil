@@ -51,6 +51,10 @@ services:
     volumes:
       # A numeração das propostas não pode reiniciar a cada deploy.
       - propostas:/app/propostas
+      # Os backups do host, só para leitura, para o envio semanal poder anexar
+      # o arquivo. `ro` porque este container não deve poder apagar backup
+      # nenhum: ele é um dos processos de que o backup protege.
+      - ${PASTA_BACKUP:-/var/backups/hclean}:/backups:ro
     expose:
       - '4000'
     networks: [hclean]

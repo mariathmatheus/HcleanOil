@@ -26,6 +26,7 @@ import { env } from '../lib/env.js';
 import { sendMail } from '../lib/mailer.js';
 import { leadNotification } from '../emails/templates.js';
 import type { ContactPayload, QuoteItem } from '../lib/schema.js';
+import { registrarNoHistorico } from './registro.js';
 
 const PASTA = join(env.PROPOSTAS_DIR, 'leads-pendentes');
 
@@ -129,6 +130,12 @@ export async function gravarLead(lead: {
   await writeFile(temporario, JSON.stringify(item), 'utf8');
   await rename(temporario, caminhoDe(item.leadId));
 
+  /* Histórico permanente, em paralelo à fila. A fila é sala de espera e o
+     arquivo sai dela quando o e-mail é aceito; aqui a linha nunca sai. Sem
+     `await` no caminho crítico? Não: é append de uma linha, custa o mesmo que
+     a escrita acima, e `registrarNoHistorico` nunca lança — então esperar não
+     adiciona risco e garante que a linha exista antes de a rota responder. */
+  await registrarNoHistorico(lead);
 }
 
 /** Remonta a notificação a partir do arquivo e manda para a caixa comercial. */

@@ -45,9 +45,50 @@ Perda total do volume → restauração devolveu os 4 arquivos, lead íntegro e
 contador preservado (não voltou a zero). Vale repetir esse teste de vez em
 quando: backup que nunca foi restaurado é esperança, não backup.
 
-## Guardar fora do servidor
+## Fora do servidor: e-mail semanal
 
-O que está aqui protege de `docker volume rm` e de container recriado — não de
-perder a VPS. Se o servidor sumir, o backup vai com ele. Para cobrir isso,
-copie `/var/backups/hclean/` para fora (rclone, rsync para outra máquina, ou
-baixar com `scp` de vez em quando).
+Todo **domingo**, o backup manda dois anexos para a caixa comercial (`MAIL_TO`):
+
+| anexo | para que serve |
+|---|---|
+| `propostas-*.tar.gz` | **restaurar**. Volta direto no `restaurar.sh`. |
+| `leads-historico.csv` | **consultar**. Uma linha por lead desde sempre, nada apagado, abre no Excel. |
+
+A divisão é de propósito. O `.tar.gz` guarda o estado recente do volume — é o
+que permite voltar. O `.csv` é o histórico real: a fila do servidor **esvazia**
+quando o e-mail sai, então um backup do volume não contém o que já foi
+enviado. O CSV contém.
+
+Semanal e não diário porque um anexo por dia na caixa comercial vira ruído, e
+ruído é o que faz as pessoas pararem de olhar.
+
+Falha no envio **não** invalida o backup: o arquivo em disco já está gravado e
+conferido antes de o e-mail ser tentado.
+
+Para desligar o envio (mantendo o backup em disco):
+
+```sh
+ENVIAR_SEMANAL=0 sh infra/backup/backup.sh
+```
+
+Para testar o envio agora, sem esperar domingo:
+
+```sh
+docker compose exec -T backend node scripts/enviar-backup.mjs
+```
+
+### Sobre o CSV
+
+É gravado pelo backend no momento em que o lead chega, antes de qualquer
+tentativa de e-mail. Separado por `;` e com BOM, que é o que o Excel em
+português espera — com vírgula, ele amassa tudo numa coluna só.
+
+Valores que começam com `=`, `+`, `-` ou `@` recebem um apóstrofo na frente.
+Sem isso, alguém poderia mandar `=HYPERLINK(...)` no campo de mensagem e a
+planilha executaria aquilo ao ser aberta.
+
+### O que ainda não está coberto
+
+O e-mail protege de perder a VPS, mas depende da caixa continuar existindo e
+de ninguém apagar as mensagens. Para arquivo de longo prazo, vale guardar os
+anexos de vez em quando em outro lugar — ou configurar nuvem (rclone) depois.
