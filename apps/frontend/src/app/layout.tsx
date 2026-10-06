@@ -99,7 +99,16 @@ const organizationSchema = {
      `site.legal`, o mesmo lugar que alimenta a política e o rodapé. */
   ...(site.legal.cnpj ? { taxID: site.legal.cnpj } : {}),
   ...(site.legal.endereco
-    ? { address: { '@type': 'PostalAddress', streetAddress: site.legal.endereco, addressCountry: 'BR' } }
+    ? {
+        address: {
+          '@type': 'PostalAddress',
+          streetAddress: site.legal.enderecoPartes.logradouro,
+          addressLocality: site.legal.enderecoPartes.cidade,
+          addressRegion: site.legal.enderecoPartes.uf,
+          postalCode: site.legal.enderecoPartes.cep,
+          addressCountry: 'BR',
+        },
+      }
     : {}),
   areaServed: { '@type': 'Country', name: 'Brasil' },
   knowsAbout: [

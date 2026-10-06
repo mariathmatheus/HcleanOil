@@ -70,15 +70,36 @@ export const site = {
    * inventado numa política de privacidade é afirmação falsa sobre quem
    * controla os dados, e a LGPD exige a identificação correta do controlador.
    *
-   * Para publicar: troque o `null` pelo valor real e pronto — os quatro
-   * pontos passam a mostrar o dado certo no mesmo deploy.
+   * Informados pelo cliente em 06/10/2026. O CNPJ foi conferido pelos dígitos
+   * verificadores antes de publicar: um erro de digitação aqui é divergência
+   * num documento legal, e é o tipo de inconsistência que reprova anúncio.
    */
   legal: {
-    cnpj: null as string | null,
-    endereco: null as string | null,
+    cnpj: '54.490.791/0001-04' as string | null,
+    /* O endereço em uma linha, para a política e o rodapé lerem direto. */
+    endereco:
+      'Avenida Sete de Setembro, 2775, 9º andar, Batel, Curitiba/PR, CEP 80230-010' as
+        | string
+        | null,
+    /* E em partes, para o dado estruturado. O schema.org tem campo próprio
+       para cidade, estado e CEP, e o Google os usa para casar a empresa com o
+       lugar — jogar tudo em `streetAddress` entrega a informação de um jeito
+       que ele não consegue conferir. Mesma fonte, dois formatos, nenhum
+       digitado duas vezes em arquivos diferentes. */
+    enderecoPartes: {
+      logradouro: 'Avenida Sete de Setembro, 2775, 9º andar',
+      bairro: 'Batel',
+      cidade: 'Curitiba',
+      uf: 'PR',
+      cep: '80230-010',
+    },
     /* Encarregado de dados (DPO), exigido pelo art. 41 da LGPD. Pode ser uma
-       pessoa ou um canal; o que não pode é não haver nenhum. */
-    encarregado: null as string | null,
+       pessoa ou um canal; o que não pode é não haver nenhum.
+
+       O e-mail vai junto porque o artigo exige que a identidade E o canal de
+       contato sejam públicos — nomear o encarregado sem dizer como falar com
+       ele não cumpre a obrigação. */
+    encarregado: 'Rodrigo Vasconcellos — rdeppinghaus@gmail.com' as string | null,
   },
 } as const;
 

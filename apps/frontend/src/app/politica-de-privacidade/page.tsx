@@ -43,10 +43,11 @@ import s from './privacidade.module.css';
  * o que o container injeta. Se uma tag nova entrar lá, esta página precisa
  * acompanhar.
  *
- * As lacunas de identificação jurídica (CNPJ, endereço) ficam como marcador
- * visível `[... a preencher]`, não como texto plausível: inventar um CNPJ num
- * documento legal é pior do que deixá-lo em branco, e o marcador amarelo
- * garante que ninguém o publique sem perceber.
+ * A identificação jurídica (CNPJ, endereço, encarregado) vem de `site.legal`,
+ * um lugar só, e foi preenchida pelo cliente em 06/10/2026. Enquanto um valor
+ * for `null`, a página mostra um marcador amarelo visível em vez de texto
+ * plausível: inventar um CNPJ num documento legal é pior do que deixá-lo em
+ * branco, e o marcador garante que ninguém publique a página sem perceber.
  */
 
 /** Data da última revisão do texto. Atualizar A MÃO quando o conteúdo mudar. */
@@ -139,15 +140,31 @@ export default function PoliticaDePrivacidadePage() {
                   decide — e por isso é a HCLEAN que responde por essas decisões
                   perante você.
                 </p>
-                <p>
-                  Para falar sobre privacidade, use{' '}
-                  <a href={`mailto:${site.contact.email}`}>{site.contact.email}</a>. A
-                  designação formal de um encarregado pelo tratamento de dados
-                  pessoais (art. 41 da LGPD) está{' '}
-                  <Dado valor={site.legal.encarregado} falta="encarregado a designar" />; até
-                  que seja publicada aqui, esse e-mail é o canal oficial e as
-                  solicitações recebidas por ele são atendidas nos mesmos prazos.
-                </p>
+                {/* Dois textos, e não um com o nome encaixado no meio. A frase
+                    anterior dizia que a designação "está [a designar]; até que
+                    seja publicada aqui...", o que com o nome preenchido viraria
+                    "está Rodrigo Vasconcellos; até que seja publicada aqui" —
+                    incoerente, e contraditória num documento legal. */}
+                {site.legal.encarregado ? (
+                  <p>
+                    O encarregado pelo tratamento de dados pessoais (art. 41 da
+                    LGPD) é <strong>{site.legal.encarregado}</strong>. Para falar
+                    sobre privacidade, você pode procurá-lo diretamente ou usar{' '}
+                    <a href={`mailto:${site.contact.email}`}>{site.contact.email}</a>
+                    ; as solicitações recebidas pelos dois canais são atendidas nos
+                    mesmos prazos.
+                  </p>
+                ) : (
+                  <p>
+                    Para falar sobre privacidade, use{' '}
+                    <a href={`mailto:${site.contact.email}`}>{site.contact.email}</a>. A
+                    designação formal de um encarregado pelo tratamento de dados
+                    pessoais (art. 41 da LGPD) está{' '}
+                    <span className={s.pendente}>[encarregado a designar]</span>; até
+                    que seja publicada aqui, esse e-mail é o canal oficial e as
+                    solicitações recebidas por ele são atendidas nos mesmos prazos.
+                  </p>
+                )}
               </section>
 
               {/* ---------------------------------------------------- dados */}
