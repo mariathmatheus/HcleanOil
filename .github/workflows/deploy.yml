@@ -75,9 +75,29 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-          # `ssh-keyscan` em vez de desligar a verificação: aceitar qualquer
-          # host abriria espaço para alguém se passar pelo servidor.
-          ssh-keyscan -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
+
+          # `ssh-keyscan` em vez de desligar a verificação do host: aceitar
+          # qualquer chave abriria espaço para alguém se passar pelo servidor.
+          #
+          # Com repetição e COM o erro à vista. A primeira versão era uma
+          # chamada só, sem timeout e com `2>/dev/null`: quando o keyscan não
+          # respondeu, o passo morreu em 5 s sem dizer por quê — o `-e` do
+          # shell aborta na primeira saída não-zero, e a mensagem que
+          # explicaria tinha sido jogada fora. O site estava no ar e o SSH
+          # respondia; foi só uma falha passageira de rede do runner, e o
+          # diagnóstico custou mais que o incidente.
+          for t in 1 2 3 4 5; do
+            if ssh-keyscan -T 15 -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts 2>/tmp/keyscan.err; then
+              if [ -s ~/.ssh/known_hosts ]; then
+                echo "chave do host obtida na tentativa $t"
+                exit 0
+              fi
+            fi
+            echo "tentativa $t falhou:"; cat /tmp/keyscan.err
+            sleep 5
+          done
+          echo '::error::não foi possível obter a chave do host SSH em 5 tentativas'
+          exit 1
 
       # O script remoto vai entre aspas SIMPLES, e isso não é estilo. Ele passa
       # por dois shells, o do runner e o do servidor. Entre aspas duplas, o do
