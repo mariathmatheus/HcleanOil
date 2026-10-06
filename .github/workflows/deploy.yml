@@ -106,7 +106,22 @@ jobs:
 
              # O commit entra no container e sai no /health, para a etapa
              # seguinte poder provar que foi este código que subiu.
-             export COMMIT_SHA=${{ github.sha }}
+             #
+             # Gravado no .env da raiz, que o compose lê sozinho, e não apenas
+             # exportado neste shell: um `docker compose up -d` rodado à mão
+             # depois não teria a variável, resolveria ${COMMIT_SHA:-} para
+             # vazio e recriaria o container sem ela. O /health passaria a
+             # responder versao vazia e a verificação perderia a referência —
+             # aconteceu, logo no primeiro restart manual.
+             touch .env
+             sed -i '/^COMMIT_SHA=/d' .env
+             # Garante quebra de linha no fim antes de acrescentar. Sem isto,
+             # um .env que termine sem newline receberia a linha nova COLADA na
+             # última — medido: `TUNNEL_TOKEN=xCOMMIT_SHA=y`, que destruiria o
+             # token e tiraria o site do ar junto com o túnel.
+             [ -s .env ] && [ "$(tail -c1 .env)" != '' ] && echo '' >> .env
+             echo 'COMMIT_SHA=${{ github.sha }}' >> .env
+
              docker compose up -d --build
 
              # Imagem antiga acumulada enche o disco do servidor com o tempo.
