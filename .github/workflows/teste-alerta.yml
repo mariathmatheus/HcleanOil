@@ -1,0 +1,21 @@
+name: Teste de alerta
+on: workflow_dispatch
+jobs:
+  t:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: dawidd6/action-send-mail@67ce3558d613188179559c61d3565140cf389968
+        with:
+          server_address: ${{ secrets.SMTP_HOST }}
+          server_port: 465
+          secure: true
+          username: ${{ secrets.SMTP_USER }}
+          password: ${{ secrets.SMTP_PASS }}
+          from: Vigilancia HCLEAN <${{ secrets.SMTP_USER }}>
+          to: ${{ secrets.ALERTA_PARA }}
+          subject: '[HCLEAN] Teste do canal de alerta (ignore)'
+          body: |
+            Este e um teste do canal de alerta da vigilancia automatica.
+
+            Se esta mensagem chegou, o aviso de producao com problema tambem
+            vai chegar. Nenhuma acao necessaria.
