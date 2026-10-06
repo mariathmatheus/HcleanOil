@@ -120,6 +120,12 @@ export function Footer() {
           <div className={s.bottom}>
             <span>
               © {new Date().getFullYear()} {site.legalName}
+              {/* CNPJ no rodapé de todas as páginas. A política de anúncios do
+                  Google espera identificar o anunciante no próprio site, e não
+                  só numa página de política — foi um dos pontos da reprovação.
+                  Aparece quando o dado existir em `site.legal`; até lá, nada,
+                  porque um rótulo "CNPJ:" sem número é pior que a ausência. */}
+              {site.legal.cnpj ? ` · CNPJ ${site.legal.cnpj}` : null}
             </span>
             <span>{site.contact.hours}</span>
           </div>

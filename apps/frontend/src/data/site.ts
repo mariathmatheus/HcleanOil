@@ -56,6 +56,30 @@ export const site = {
     site: 'hcleanoil.com.br',
     hours: 'Seg–Sex: 08:00–18:00 · Sáb–Dom: fechado',
   },
+
+  /**
+   * Dados cadastrais da empresa. UM lugar só, de propósito.
+   *
+   * Estavam escritos à mão em quatro pontos da política e do rodapé, cada um
+   * para editar separadamente. Com o cliente mandando o CNPJ, a chance de um
+   * ficar para trás era real — e um CNPJ divergente numa página de política é
+   * exatamente o tipo de inconsistência que reprova anúncio.
+   *
+   * `null` significa "o cliente ainda não informou", e a página mostra um
+   * marcador visível no lugar. Nunca preencher com valor plausível: um CNPJ
+   * inventado numa política de privacidade é afirmação falsa sobre quem
+   * controla os dados, e a LGPD exige a identificação correta do controlador.
+   *
+   * Para publicar: troque o `null` pelo valor real e pronto — os quatro
+   * pontos passam a mostrar o dado certo no mesmo deploy.
+   */
+  legal: {
+    cnpj: null as string | null,
+    endereco: null as string | null,
+    /* Encarregado de dados (DPO), exigido pelo art. 41 da LGPD. Pode ser uma
+       pessoa ou um canal; o que não pode é não haver nenhum. */
+    encarregado: null as string | null,
+  },
 } as const;
 
 /**

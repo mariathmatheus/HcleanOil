@@ -92,6 +92,15 @@ const organizationSchema = {
   description: site.description,
   email: site.contact.email,
   telephone: '+55-21-99494-5460',
+  /* CNPJ e endereço entram só quando existirem. Espalhados condicionalmente e
+     não com valor vazio: um `address: ""` no dado estruturado é pior que a
+     ausência do campo — o Google trata como declaração de que não há endereço,
+     e é justamente o que ele procura para confiar numa empresa. Chegam de
+     `site.legal`, o mesmo lugar que alimenta a política e o rodapé. */
+  ...(site.legal.cnpj ? { taxID: site.legal.cnpj } : {}),
+  ...(site.legal.endereco
+    ? { address: { '@type': 'PostalAddress', streetAddress: site.legal.endereco, addressCountry: 'BR' } }
+    : {}),
   areaServed: { '@type': 'Country', name: 'Brasil' },
   knowsAbout: [
     'Contenção de derramamentos',

@@ -1,0 +1,17 @@
+# Normaliza fim de linha. Sem isto, o Git do Windows pode entregar arquivos
+# com CRLF, e um script `.sh` com CRLF falha no Linux com um erro que nao
+# explica nada: "bad interpreter: /bin/sh^M: no such file or directory".
+#
+# Os scripts de backup rodam no servidor, e a raiz do repositorio e editada no
+# Windows — exatamente a combinacao que produz esse defeito.
+* text=auto eol=lf
+
+# Binarios nao sao texto e nao devem ser convertidos.
+*.png binary
+*.jpg binary
+*.webp binary
+*.avif binary
+*.mp4 binary
+*.pdf binary
+*.ico binary
+*.woff2 binary

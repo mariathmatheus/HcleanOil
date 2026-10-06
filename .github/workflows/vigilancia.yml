@@ -165,6 +165,43 @@ jobs:
             gh issue close "$n"
           done
 
+      # A issue serve de histórico, mas ninguém a abre de madrugada. O e-mail
+      # chega onde as pessoas já olham.
+      #
+      # Mandado por uma action com SMTP próprio, e NÃO pelo backend: o backend
+      # é parte do que está sendo vigiado, e um alerta que depende do que
+      # quebrou não chega justamente quando precisa. Foi o envio de e-mail que
+      # caiu, afinal.
+      #
+      # `if: always()` nos segredos não ajudaria: quando não existirem, a
+      # action falha e a execução já está vermelha de todo jeito. O `continue-
+      # on-error` é o que impede o alerta por e-mail de virar o problema.
+      - name: Avisa por e-mail
+        if: steps.v.outputs.problemas != ''
+        continue-on-error: true
+        # Fixada no commit, e não em `@v3`: uma tag é mutável e pode ser
+        # reapontada por quem mantém o repositório. Esta action recebe a senha
+        # SMTP do cliente, então o que roda aqui precisa ser o código que foi
+        # conferido, não o que estiver na tag no dia. (v22, de 2026-10-05.)
+        uses: dawidd6/action-send-mail@67ce3558d613188179559c61d3565140cf389968
+        with:
+          server_address: ${{ secrets.SMTP_HOST }}
+          server_port: 465
+          secure: true
+          username: ${{ secrets.SMTP_USER }}
+          password: ${{ secrets.SMTP_PASS }}
+          from: Vigilancia HCLEAN <${{ secrets.SMTP_USER }}>
+          to: ${{ secrets.ALERTA_PARA }}
+          subject: '[HCLEAN] Producao com problema'
+          body: |
+            A vigilância automática encontrou problema em produção:
+
+            ${{ steps.v.outputs.problemas }}
+
+            Execução: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+            Este aviso se repete a cada 15 minutos enquanto o problema durar.
+
       - name: Falha para marcar a execução
         if: steps.v.outputs.problemas != ''
         run: exit 1

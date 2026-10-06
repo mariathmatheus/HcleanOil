@@ -52,6 +52,23 @@ import s from './privacidade.module.css';
 /** Data da última revisão do texto. Atualizar A MÃO quando o conteúdo mudar. */
 const ATUALIZADO_EM = '3 de outubro de 2026';
 
+/**
+ * Um dado cadastral que o cliente pode ainda não ter informado.
+ *
+ * Com o valor em `site.legal`, mostra o valor. Sem ele, mostra o marcador
+ * amarelo — nunca um texto plausível. Inventar um CNPJ num documento legal é
+ * afirmar algo falso sobre quem controla os dados; a LGPD exige a
+ * identificação correta do controlador, e o marcador garante que ninguém
+ * publique a página achando que está completa.
+ *
+ * Antes isto estava escrito à mão em quatro pontos. Agora o valor chega de um
+ * lugar só, então preencher `site.legal` resolve todos no mesmo deploy.
+ */
+function Dado({ valor, falta }: { valor: string | null; falta: string }) {
+  if (valor) return <>{valor}</>;
+  return <span className={s.pendente}>[{falta}]</span>;
+}
+
 /* O índice e os títulos saem da mesma lista: o link do índice e o `id` do
    bloco não podem divergir, e manter os dois à mão garantia que um dia
    divergiriam. */
@@ -113,8 +130,8 @@ export default function PoliticaDePrivacidadePage() {
                 <p>
                   O controlador dos dados pessoais tratados neste site é a{' '}
                   <strong>{site.legalName}</strong>, inscrita no CNPJ{' '}
-                  <span className={s.pendente}>[CNPJ a preencher]</span>, com sede em{' '}
-                  <span className={s.pendente}>[endereço a preencher]</span>.
+                  <Dado valor={site.legal.cnpj} falta="CNPJ a preencher" />, com sede em{' '}
+                  <Dado valor={site.legal.endereco} falta="endereço a preencher" />.
                 </p>
                 <p>
                   &ldquo;Controlador&rdquo;, na LGPD, é quem decide o que se faz com o
@@ -127,7 +144,7 @@ export default function PoliticaDePrivacidadePage() {
                   <a href={`mailto:${site.contact.email}`}>{site.contact.email}</a>. A
                   designação formal de um encarregado pelo tratamento de dados
                   pessoais (art. 41 da LGPD) está{' '}
-                  <span className={s.pendente}>[encarregado a designar]</span>; até
+                  <Dado valor={site.legal.encarregado} falta="encarregado a designar" />; até
                   que seja publicada aqui, esse e-mail é o canal oficial e as
                   solicitações recebidas por ele são atendidas nos mesmos prazos.
                 </p>
@@ -640,9 +657,9 @@ export default function PoliticaDePrivacidadePage() {
                   <p>
                     <strong>{site.legalName}</strong>
                     <br />
-                    CNPJ <span className={s.pendente}>[CNPJ a preencher]</span>
+                    CNPJ <Dado valor={site.legal.cnpj} falta="CNPJ a preencher" />
                     <br />
-                    <span className={s.pendente}>[endereço a preencher]</span>
+                    <Dado valor={site.legal.endereco} falta="endereço a preencher" />
                   </p>
                   <p>
                     Privacidade e LGPD:{' '}
