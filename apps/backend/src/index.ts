@@ -4,6 +4,7 @@ import { env } from './lib/env.js';
 import { conferirSmtp, estadoSmtp } from './lib/saude.js';
 import { contatoRouter, enviarPropostaAutomatica } from './routes/contato.js';
 import { retomarAgendados, limparAntigos, encerrarAgenda } from './proposta/agenda.js';
+import { totalNoHistorico } from './leads/registro.js';
 import {
   retomarPendentes,
   limparVencidos,
@@ -41,7 +42,7 @@ app.use(
    `/health` sozinho batia na página 404 do site. Sem um endereço alcançável de
    fora, uma falha de envio de e-mail ficava invisível — o formulário respondia
    sucesso, o lead ia para a fila e ninguém sabia que nada estava saindo. */
-app.get(['/health', '/api/health'], (_req, res) => {
+app.get(['/health', '/api/health'], async (_req, res) => {
   const smtp = estadoSmtp();
   res.json({
     ok: true,
@@ -54,6 +55,13 @@ app.get(['/health', '/api/health'], (_req, res) => {
        diferença para avisar antes de a alternativa cair também. */
     ...(smtp.host ? { smtpHost: smtp.host } : {}),
     leadsPendentes: pendentesNaFila(),
+    /* Quantos leads o histórico já guarda. Diferente de `leadsPendentes`, que
+       é só a sala de espera e fica em zero quando tudo está bem: este número
+       só cresce, e é o que permite conferir de fora que o registro está
+       funcionando. Sem ele, a planilha só podia ser verificada entrando no
+       servidor — e o que não se consegue medir de fora é o que quebra em
+       silêncio. */
+    leadsHistorico: await totalNoHistorico(),
     /* O commit que está no ar. Chega do `docker compose` na subida do
        container (não é embutido na imagem), para que a publicação automática
        possa comparar o que enviou com o que o servidor de fato está servindo.
