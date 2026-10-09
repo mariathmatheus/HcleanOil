@@ -102,7 +102,22 @@ const formatosAbsorvente = (prefix: string, comBarreiras: boolean): QuoteOption[
       label: 'Cordão absorvente',
       fields: [unidades(`${prefix}-cordao-qtd`, { min: 10 })],
     },
-    { id: `${prefix}-manta`, label: 'Manta absorvente', fields: [mantaPacote(`${prefix}-manta-qtd`)] },
+    {
+      id: `${prefix}-manta`,
+      label: 'Manta absorvente',
+      fields: [mantaPacote(`${prefix}-manta-qtd`)],
+    },
+    /* A 4 mm é variante separada, e não um campo de espessura dentro da manta
+       comum, porque o preço muda: a unidade sai por R$ 3,20 contra R$ 2,40 da
+       padrão. Como variante, o cliente pode pedir as duas no mesmo orçamento
+       — que é como as quantidades já funcionam para os kits SOPEP. O
+       acréscimo da Linha Verde continua valendo por cima, pela mesma regra
+       que vale para todos os itens. */
+    {
+      id: `${prefix}-manta-4mm`,
+      label: 'Manta absorvente 4 mm',
+      fields: [mantaPacote(`${prefix}-manta-4mm-qtd`)],
+    },
     {
       id: `${prefix}-rolo`,
       label: 'Rolo absorvente',

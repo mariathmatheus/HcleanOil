@@ -57,6 +57,9 @@ const RECONHECIMENTO: { id: string; padrao: RegExp }[] = [
   { id: 'barreira-tiras', padrao: /barreira.*tiras/i },
   { id: 'barreira-flocada', padrao: /barreira.*flocada/i },
   { id: 'cordao', padrao: /cord(ã|a)o/i },
+  /* Antes de `manta`: a ordem decide, e `/manta/i` casaria com a de 4 mm
+     também — ela sairia cobrada a R$ 2,40. */
+  { id: 'manta-4mm', padrao: /manta.*4\s*mm/i },
   { id: 'manta', padrao: /manta/i },
   { id: 'rolo', padrao: /rolo/i },
   { id: 'travesseiro', padrao: /travesseiro/i },

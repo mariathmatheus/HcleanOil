@@ -112,6 +112,9 @@ const SECAO_DO_PRECO: Record<string, RegExp> = {
   'barreira-de-contencao-abfence': /^ab-fence$/i,
   cordao: /^cordão absorvente$/i,
   manta: /^manta absorvente$/i,
+  /* Mesma seção técnica da manta comum: o que muda é a espessura, não o
+     produto. Sem esta linha a proposta sairia sem a apresentação da manta. */
+  'manta-4mm': /^manta absorvente$/i,
   rolo: /^rolo absorvente$/i,
   travesseiro: /^travesseiro/i,
   'barreira-tiras': /tiras/i,

@@ -63,6 +63,12 @@ export const PRECOS: ItemPreco[] = [
   /* ------------------------------------------------ formatos absorventes */
   { id: 'cordao', nome: 'Cordão absorvente', unidade: 'unidade', preco: 9.0 },
   { id: 'manta', nome: 'Manta absorvente', unidade: 'unidade', preco: 2.4 },
+  /* A 4 mm é mais espessa e absorve mais por unidade; sai por R$ 3,20 contra
+     R$ 2,40 da padrão. Item próprio e não um modificador de preço da manta
+     comum: assim ele aparece como linha separada na proposta, que é como o
+     cliente pediu as duas. O acréscimo da Linha Verde incide por cima, pela
+     regra geral de `precoDaLinha`. */
+  { id: 'manta-4mm', nome: 'Manta absorvente 4 mm', unidade: 'unidade', preco: 3.2 },
   { id: 'rolo', nome: 'Rolo absorvente', unidade: 'rolo', preco: 540.0 },
   {
     id: 'travesseiro',
