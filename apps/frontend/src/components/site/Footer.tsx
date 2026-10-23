@@ -70,8 +70,8 @@ export function Footer() {
           <div className={s.brandCol}>
             <Logo height={32} tone="light" />
             <p className={s.blurb}>
-              Equipamentos e soluções para resposta a emergências ambientais. Há mais
-              de {anosDeCasa} anos apoiando operações de contenção e absorção no Brasil.
+              Mais de {anosDeCasa} anos fabricando equipamentos de alta qualidade para
+              resposta a emergências ambientais. Proteção ambiental é nossa missão.
             </p>
             <div className={s.contactList}>
               <ContactLink

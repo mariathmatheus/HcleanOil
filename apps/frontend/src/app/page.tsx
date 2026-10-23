@@ -50,7 +50,7 @@ export default function HomePage() {
       <VideoHero
         title="Equipamentos de proteção ambiental"
         titleAccent="com qualidade comprovada"
-        lead="Durabilidade, resistência e qualidade que garantem agilidade, segurança e conformidade ambiental no seu dia a dia operacional."
+        lead="Durabilidade, resistência e qualidade indiscutíveis que garantem agilidade, segurança e conformidade ambiental no seu dia a dia operacional."
         /* O poster é o LCP da home e continua sendo a única imagem no caminho
            crítico. O vídeo é decoração: entra depois do load, só no desktop e
            só para quem não pediu menos movimento. */
@@ -70,8 +70,8 @@ export default function HomePage() {
           <Split>
             <Prose>
               <SectionHeading
-                eyebrow="O material certo para a operação"
-                title="O fabricante brasileiro com experiência em grandes emergências ambientais"
+                eyebrow="O melhor material para a operação"
+                title="O fabricante brasileiro com mais experiência em grandes emergências ambientais"
                 description="Quando a emergência bate à porta, somos a escolha de quem não pode errar."
               />
               <p>
@@ -145,9 +145,9 @@ export default function HomePage() {
         <BrandLinesArt className={s.solutionsArt} />
         <Container>
           <SectionHeading
-            eyebrow="Nossas soluções"
-            title="Equipamentos para cada etapa da resposta ambiental"
-            description="Da contenção do contaminante à absorção e ao atendimento inicial, a HCLEAN oferece soluções para diferentes necessidades operacionais."
+            eyebrow="Os melhores do mercado"
+            title="Soluções completas para contenção, absorção e resposta imediata"
+            description="Equipamentos de alta qualidade fabricados no Brasil com tecnologia internacional."
           />
           <div style={{ marginTop: 48 }}>
             <Grid cols={4}>

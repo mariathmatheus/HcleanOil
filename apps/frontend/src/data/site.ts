@@ -802,7 +802,7 @@ export const relatedProducts = (product: Product, limit = 3) => {
 export const pillars = [
   {
     icon: 'clock' as IconName,
-    title: '+18 anos de experiência',
+    title: `+${new Date().getFullYear() - ANO_FUNDACAO} anos de experiência`,
     text: 'Fabricação de equipamentos e soluções para emergências ambientais desde 2004.',
   },
   {
@@ -817,17 +817,17 @@ export const pillars = [
   },
   {
     icon: 'handshake' as IconName,
-    title: 'Fabricação nacional',
-    text: 'Produção no Brasil, com atendimento e logística para todo o território nacional.',
+    title: '48h de estoque mínimo',
+    text: 'Estoque permanente de material absorvente para pronta entrega em todo o Brasil.',
   },
 ];
 
 /** Números do site anterior, confirmados para uso. */
 export const proofPoints = [
-  { value: '+18', label: 'anos no mercado de proteção ambiental' },
-  { value: '500 mil', label: 'metros de barreira fabricados' },
-  { value: '10 mil', label: 'de estoque mínimo de material absorvente' },
-  { value: 'Nacional', label: 'atendimento em todo o Brasil' },
+  { value: `+${anosDeCasa}`, label: 'anos no mercado de proteção ambiental' },
+  { value: '500K+', label: 'metros de barreira fabricados' },
+  { value: '+100', label: 'projetos entregues, valorizando a proteção de cada cliente' },
+  { value: '10K+', label: 'utilizações de nossas barreiras em operações preventivas' },
 ];
 
 /** Operações reais atendidas com equipamentos HCLEAN. */
